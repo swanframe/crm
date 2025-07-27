@@ -1,0 +1,299 @@
+<!-- templates/customer_detail.html -->
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('customers.detail_title') }} - {{ customer.customer_name }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('customers.detail_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('customers.detail_title') }}: {{ customer.customer_name }}</h1>
+    <div>
+        <a href="{{ url_for('list_customers') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('sidebar.customers')) }}
+        </a>
+        {# Hanya Admin, Operator, Contributor yang bisa mengedit #}
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+        <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editCustomerModal"
+                data-customer-id="{{ customer.customer_id }}"
+                data-customer-name="{{ customer.customer_name }}"
+                data-customer-code="{{ customer.customer_code }}"
+                data-customer-is-member="{{ customer.customer_is_member }}"
+                data-customer-organization="{{ customer.customer_organization }}"
+                data-customer-telephone="{{ customer.customer_telephone }}"
+                data-customer-email="{{ customer.customer_email }}"
+                data-customer-address="{{ customer.customer_address }}"
+                data-customer-whatsapp="{{ customer.customer_whatsapp }}">
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
+        </button>
+        {% endif %}
+        {# Hanya Admin dan Operator yang bisa menghapus #}
+        {% if g.user.user_level in ['Admin', 'Operator'] %}
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteCustomerModal" data-customer-id="{{ customer.customer_id }}" data-customer-name="{{ customer.customer_name }}">
+            <i class="bi bi-trash me-1"></i>{{ _('common.delete') }}
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">{{ _('customers.customer_information') }}</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">{{ _('common.id') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_id }}</dd>
+
+            <dt class="col-sm-3">{{ _('customers.customer_name') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_name }}</dd>
+
+            <dt class="col-sm-3">{{ _('customers.customer_code') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_code if customer.customer_code else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('customers.membership_status') }}</dt>
+            <dd class="col-sm-9">
+                {% if customer.customer_is_member %}
+                    <span class="badge bg-success">{{ _('customers.member_status_member') }}</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ _('customers.member_status_non_member') }}</span>
+                {% endif %}
+            </dd>
+
+            <dt class="col-sm-3">{{ _('customers.organization') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_organization if customer.customer_organization else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.telephone') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_telephone if customer.customer_telephone else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.email') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_email if customer.customer_email else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.address') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_address if customer.customer_address else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.whatsapp') }}</dt>
+            <dd class="col-sm-9">{{ customer.customer_whatsapp if customer.customer_whatsapp else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.created_by') }}</dt>
+            <dd class="col-sm-9">{{ created_by_username }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.created_at') }}</dt>
+            <dd class="col-sm-9">{{ customer.created_at.strftime('%Y-%m-%d %H:%M:%S') if customer.created_at else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_by') }}</dt>
+            <dd class="col-sm-9">{{ updated_by_username }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_at') }}</dt>
+            <dd class="col-sm-9">{{ customer.updated_at.strftime('%Y-%m-%d %H:%M:%S') if customer.updated_at else _('common.not_available_short') }}</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ _('customers.associated_stores') }}</h5>
+        {# Hanya Admin, Operator, Contributor yang bisa mengelola asosiasi #}
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+        <a href="{{ url_for('manage_customer_stores', customer_id=customer.customer_id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.manage_associations', entity_name=_('sidebar.stores')) }}
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ _('common.id') }}</th>
+                        <th>{{ _('stores.store_name') }}</th>
+                        <th>{{ _('common.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for store in associated_stores %}
+                    <tr>
+                        <td>{{ store.store_id }}</td>
+                        <td>{{ store.store_name }}</td>
+                        <td>
+                            <a href="{{ url_for('view_store_detail', store_id=store.store_id) }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-eye"></i> {{ _('common.view') }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">{{ _('customers.no_associated_stores') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if total_pages_stores > 1 %}
+    <div class="card-footer bg-white">
+        <nav aria-label="Page navigation for associated stores">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if page_stores == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_customer_detail', customer_id=customer.customer_id, page_stores=1) }}" aria-label="{{ _('common.first_page') }}">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item {% if page_stores == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_customer_detail', customer_id=customer.customer_id, page_stores=page_stores-1) }}" aria-label="{{ _('common.previous_page') }}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% for p in range(1, total_pages_stores + 1) %}
+                <li class="page-item {% if p == page_stores %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_customer_detail', customer_id=customer.customer_id, page_stores=p) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if page_stores == total_pages_stores %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_customer_detail', customer_id=customer.customer_id, page_stores=page_stores+1) }}" aria-label="{{ _('common.next_page') }}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item {% if page_stores == total_pages_stores %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_customer_detail', customer_id=customer.customer_id, page_stores=total_pages_stores) }}" aria-label="{{ _('common.last_page') }}">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Edit Customer Modal (Same as in customers.html, ensure it's included or loaded) -->
+<div class="modal fade" id="editCustomerModal" tabindex="-1" aria-labelledby="editCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editCustomerForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editCustomerModalLabel">{{ _('customers.edit_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_customer_id" name="customer_id">
+                    <div class="mb-3">
+                        <label for="edit_customer_name" class="form-label">{{ _('customers.customer_name') }}</label>
+                        <input type="text" class="form-control" id="edit_customer_name" name="customer_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_customer_code" class="form-label">{{ _('customers.customer_code') }}</label>
+                        <input type="text" class="form-control" id="edit_customer_code" name="customer_code">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer_organization_edit" class="form-label">{{ _('customers.organization') }}</label>
+                        <input type="text" class="form-control" id="customer_organization_edit" name="customer_organization">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer_telephone_edit" class="form-label">{{ _('common.telephone') }}</label>
+                        <input type="text" class="form-control" id="customer_telephone_edit" name="customer_telephone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer_email_edit" class="form-label">{{ _('common.email') }}</label>
+                        <input type="email" class="form-control" id="customer_email_edit" name="customer_email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer_address_edit" class="form-label">{{ _('common.address') }}</label>
+                        <textarea class="form-control" id="customer_address_edit" name="customer_address" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="customer_whatsapp_edit" class="form-label">{{ _('common.whatsapp') }}</label>
+                        <input type="text" class="form-control" id="customer_whatsapp_edit" name="customer_whatsapp">
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="customer_is_member_edit" name="customer_is_member">
+                        <label class="form-check-label" for="customer_is_member_edit">
+                            {{ _('customers.is_member_checkbox') }}
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('common.save_changes_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Customer Confirmation Modal -->
+<div class="modal fade" id="deleteCustomerModal" tabindex="-1" aria-labelledby="deleteCustomerModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCustomerModalLabel">{{ _('common.delete') }} {{ _('sidebar.customers') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+            </div>
+            <div class="modal-body">
+                {{ _('common.are_you_sure_delete', entity_name=_('sidebar.customers')) }} <span id="delete_customer_name_placeholder" class="fw-bold"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                <form id="deleteCustomerForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">{{ _('common.delete') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Script untuk mengisi data di modal edit
+        var editCustomerModal = document.getElementById('editCustomerModal');
+        editCustomerModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var customerId = button.getAttribute('data-customer-id');
+            var customerName = button.getAttribute('data-customer-name');
+            var customerCode = button.getAttribute('data-customer-code'); 
+            var customerIsMember = button.getAttribute('data-customer-is-member') === 'True'; 
+            var customerOrganization = button.getAttribute('data-customer-organization');     
+            var customerTelephone = button.getAttribute('data-customer-telephone'); 
+            var customerEmail = button.getAttribute('data-customer-email');         
+            var customerAddress = button.getAttribute('data-customer-address');       
+            var customerWhatsapp = button.getAttribute('data-customer-whatsapp');     
+
+            var modalTitle = editCustomerModal.querySelector('.modal-title');
+            var modalBodyInputId = editCustomerModal.querySelector('#edit_customer_id');
+            var modalBodyInputName = editCustomerModal.querySelector('#edit_customer_name');
+            var modalBodyInputCode = editCustomerModal.querySelector('#edit_customer_code'); 
+            var modalBodyInputIsMember = editCustomerModal.querySelector('#customer_is_member_edit'); 
+            var modalBodyInputOrganization = editCustomerModal.querySelector('#customer_organization_edit'); 
+            var modalBodyInputTelephone = editCustomerModal.querySelector('#customer_telephone_edit'); 
+            var modalBodyInputEmail = editCustomerModal.querySelector('#customer_email_edit');         
+            var modalBodyInputAddress = editCustomerModal.querySelector('#customer_address_edit');       
+            var modalBodyInputWhatsapp = editCustomerModal.querySelector('#customer_whatsapp_edit');     
+            var editForm = editCustomerModal.querySelector('#editCustomerForm');
+
+            modalTitle.textContent = "{{ _('customers.edit_modal_title') }}: " + customerName;
+            modalBodyInputId.value = customerId;
+            modalBodyInputName.value = customerName;
+            modalBodyInputCode.value = customerCode; 
+            modalBodyInputIsMember.checked = customerIsMember; 
+            modalBodyInputOrganization.value = customerOrganization;
+            modalBodyInputTelephone.value = customerTelephone; 
+            modalBodyInputEmail.value = customerEmail;         
+            modalBodyInputAddress.value = customerAddress;     
+            modalBodyInputWhatsapp.value = customerWhatsapp;   
+            editForm.action = "{{ url_for('edit_customer', customer_id=0) }}".replace('0', customerId);
+        });
+
+        // Script untuk mengisi data di modal delete
+        var deleteCustomerModal = document.getElementById('deleteCustomerModal');
+        deleteCustomerModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var customerId = button.getAttribute('data-customer-id');
+            var customerName = button.getAttribute('data-customer-name');
+            var deleteCustomerNamePlaceholder = deleteCustomerModal.querySelector('#delete_customer_name_placeholder');
+            var deleteForm = deleteCustomerModal.querySelector('#deleteCustomerForm');
+
+            deleteCustomerNamePlaceholder.textContent = customerName;
+            deleteForm.action = "{{ url_for('delete_customer', customer_id=0) }}".replace('0', customerId);
+        });
+    });
+</script>
+{% endblock %}

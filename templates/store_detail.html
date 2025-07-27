@@ -1,0 +1,266 @@
+<!-- templates/store_detail.html -->
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('stores.detail_title') }} - {{ store.store_name }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('stores.detail_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('stores.detail_title') }}: {{ store.store_name }}</h1>
+    <div>
+        <a href="{{ url_for('list_stores') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('sidebar.stores')) }}
+        </a>
+        {# Hanya Admin, Operator, Contributor yang bisa mengedit #}
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+        <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editStoreModal"
+                data-store-id="{{ store.store_id }}"
+                data-store-name="{{ store.store_name }}"
+                data-store-telephone="{{ store.store_telephone }}"
+                data-store-email="{{ store.store_email }}"
+                data-store-address="{{ store.store_address }}"
+                data-store-whatsapp="{{ store.store_whatsapp }}">
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
+        </button>
+        {% endif %}
+        {# Hanya Admin dan Operator yang bisa menghapus #}
+        {% if g.user.user_level in ['Admin', 'Operator'] %}
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteStoreModal" data-store-id="{{ store.store_id }}" data-store-name="{{ store.store_name }}">
+            <i class="bi bi-trash me-1"></i>{{ _('common.delete') }}
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">{{ _('stores.store_information') }}</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">{{ _('common.id') }}</dt>
+            <dd class="col-sm-9">{{ store.store_id }}</dd>
+
+            <dt class="col-sm-3">{{ _('stores.store_name') }}</dt>
+            <dd class="col-sm-9">{{ store.store_name }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.telephone') }}</dt>
+            <dd class="col-sm-9">{{ store.store_telephone if store.store_telephone else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.email') }}</dt>
+            <dd class="col-sm-9">{{ store.store_email if store.store_email else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.address') }}</dt>
+            <dd class="col-sm-9">{{ store.store_address if store.store_address else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.whatsapp') }}</dt>
+            <dd class="col-sm-9">{{ store.store_whatsapp if store.store_whatsapp else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.created_by') }}</dt>
+            <dd class="col-sm-9">{{ created_by_username }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.created_at') }}</dt>
+            <dd class="col-sm-9">{{ store.created_at.strftime('%Y-%m-%d %H:%M:%S') if store.created_at else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_by') }}</dt>
+            <dd class="col-sm-9">{{ updated_by_username }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_at') }}</dt>
+            <dd class="col-sm-9">{{ store.updated_at.strftime('%Y-%m-%d %H:%M:%S') if store.updated_at else _('common.not_available_short') }}</dd>
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">{{ _('stores.associated_customers') }}</h5>
+        {# Hanya Admin, Operator, Contributor yang bisa mengelola asosiasi #}
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+        <a href="{{ url_for('manage_store_customers', store_id=store.store_id) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.manage_associations', entity_name=_('sidebar.customers')) }}
+        </a>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>{{ _('common.id') }}</th>
+                        <th>{{ _('customers.customer_name') }}</th>
+                        <th>{{ _('customers.membership_status') }}</th>
+                        <th>{{ _('common.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for customer in associated_customers %}
+                    <tr>
+                        <td>{{ customer.customer_id }}</td>
+                        <td>{{ customer.customer_name }}</td>
+                        <td>
+                            {% if customer.customer_is_member %}
+                                <span class="badge bg-success">{{ _('customers.member_status_member') }}</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ _('customers.member_status_non_member') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('view_customer_detail', customer_id=customer.customer_id) }}" class="btn btn-sm btn-outline-info">
+                                <i class="bi bi-eye"></i> {{ _('common.view') }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="text-center">{{ _('stores.no_associated_customers') }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if total_pages_customers > 1 %}
+    <div class="card-footer bg-white">
+        <nav aria-label="Page navigation for associated customers">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if page_customers == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_store_detail', store_id=store.store_id, page_customers=1) }}" aria-label="{{ _('common.first_page') }}">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item {% if page_customers == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_store_detail', store_id=store.store_id, page_customers=page_customers-1) }}" aria-label="{{ _('common.previous_page') }}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% for p in range(1, total_pages_customers + 1) %}
+                <li class="page-item {% if p == page_customers %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_store_detail', store_id=store.store_id, page_customers=p) }}">{{ p }}</a>
+                </li>
+                {% endfor %}
+                <li class="page-item {% if page_customers == total_pages_customers %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_store_detail', store_id=store.store_id, page_customers=page_customers+1) }}" aria-label="{{ _('common.next_page') }}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item {% if page_customers == total_pages_customers %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('view_store_detail', store_id=store.store_id, page_customers=total_pages_customers) }}" aria-label="{{ _('common.last_page') }}">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Edit Store Modal (Same as in stores.html, ensure it's included or loaded) -->
+<div class="modal fade" id="editStoreModal" tabindex="-1" aria-labelledby="editStoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editStoreForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editStoreModalLabel">{{ _('stores.edit_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_store_id" name="store_id">
+                    <div class="mb-3">
+                        <label for="edit_store_name" class="form-label">{{ _('stores.store_name') }}</label>
+                        <input type="text" class="form-control" id="edit_store_name" name="store_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="store_telephone_edit" class="form-label">{{ _('common.telephone') }}</label>
+                        <input type="text" class="form-control" id="store_telephone_edit" name="store_telephone">
+                    </div>
+                    <div class="mb-3">
+                        <label for="store_email_edit" class="form-label">{{ _('common.email') }}</label>
+                        <input type="email" class="form-control" id="store_email_edit" name="store_email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="store_address_edit" class="form-label">{{ _('common.address') }}</label>
+                        <textarea class="form-control" id="store_address_edit" name="store_address" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="store_whatsapp_edit" class="form-label">{{ _('common.whatsapp') }}</label>
+                        <input type="text" class="form-control" id="store_whatsapp_edit" name="store_whatsapp">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('common.save_changes_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Store Confirmation Modal -->
+<div class="modal fade" id="deleteStoreModal" tabindex="-1" aria-labelledby="deleteStoreModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteStoreModalLabel">{{ _('common.delete') }} {{ _('sidebar.stores') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+            </div>
+            <div class="modal-body">
+                {{ _('common.are_you_sure_delete', entity_name=_('sidebar.stores')) }} <span id="delete_store_name_placeholder" class="fw-bold"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                <form id="deleteStoreForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">{{ _('common.delete') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Script untuk mengisi data di modal edit
+        var editStoreModal = document.getElementById('editStoreModal');
+        editStoreModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var storeId = button.getAttribute('data-store-id');
+            var storeName = button.getAttribute('data-store-name');
+            var storeTelephone = button.getAttribute('data-store-telephone');
+            var storeEmail = button.getAttribute('data-store-email');
+            var storeAddress = button.getAttribute('data-store-address');
+            var storeWhatsapp = button.getAttribute('data-store-whatsapp');
+
+            var modalTitle = editStoreModal.querySelector('.modal-title');
+            var modalBodyInputId = editStoreModal.querySelector('#edit_store_id');
+            var modalBodyInputName = editStoreModal.querySelector('#edit_store_name');
+            var modalBodyInputTelephone = editStoreModal.querySelector('#store_telephone_edit');
+            var modalBodyInputEmail = editStoreModal.querySelector('#store_email_edit');
+            var modalBodyInputAddress = editStoreModal.querySelector('#store_address_edit');
+            var modalBodyInputWhatsapp = editStoreModal.querySelector('#store_whatsapp_edit');
+            var editForm = editStoreModal.querySelector('#editStoreForm');
+
+            modalTitle.textContent = "{{ _('stores.edit_modal_title') }}: " + storeName;
+            modalBodyInputId.value = storeId;
+            modalBodyInputName.value = storeName;
+            modalBodyInputTelephone.value = storeTelephone;
+            modalBodyInputEmail.value = storeEmail;
+            modalBodyInputAddress.value = storeAddress;
+            modalBodyInputWhatsapp.value = storeWhatsapp;
+            editForm.action = "{{ url_for('edit_store', store_id=0) }}".replace('0', storeId);
+        });
+
+        // Script untuk mengisi data di modal delete
+        var deleteStoreModal = document.getElementById('deleteStoreModal');
+        deleteStoreModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var storeId = button.getAttribute('data-store-id');
+            var storeName = button.getAttribute('data-store-name');
+            var deleteStoreNamePlaceholder = deleteStoreModal.querySelector('#delete_store_name_placeholder');
+            var deleteForm = deleteStoreModal.querySelector('#deleteStoreForm');
+
+            deleteStoreNamePlaceholder.textContent = storeName;
+            deleteForm.action = "{{ url_for('delete_store', store_id=0) }}".replace('0', storeId);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,175 @@
+<!-- templates/user_detail.html -->
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('users.detail_title') }} - {{ user.username }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('users.detail_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('users.detail_title') }}: {{ user.username }}</h1>
+    <div>
+        <a href="{{ url_for('list_users') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('sidebar.users')) }}
+        </a>
+        {# Hanya Admin yang bisa mengedit user lain #}
+        {% if g.user.user_level == 'Admin' %}
+        <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editUserModal"
+                data-user-id="{{ user.id }}"
+                data-username="{{ user.username }}"
+                data-email="{{ user.email }}"
+                data-user-level="{{ user.user_level }}"> {# Pass user_level to modal #}
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
+        </button>
+        {% endif %}
+        {# Hanya Admin yang bisa menghapus user lain, dan tidak bisa menghapus diri sendiri #}
+        {% if g.user.user_level == 'Admin' and user.id != g.user.id %}
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteUserModal" data-user-id="{{ user.id }}" data-username="{{ user.username }}">
+            <i class="bi bi-trash me-1"></i>{{ _('common.delete') }}
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">{{ _('users.user_information') }}</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">{{ _('common.id') }}</dt>
+            <dd class="col-sm-9">{{ user.id }}</dd>
+
+            <dt class="col-sm-3">{{ _('users.username') }}</dt>
+            <dd class="col-sm-9">{{ user.username }}</dd>
+
+            <dt class="col-sm-3">{{ _('users.email') }}</dt>
+            <dd class="col-sm-9">{{ user.email }}</dd>
+
+            <dt class="col-sm-3">{{ _('users.user_level') }}</dt> {# Display user level #}
+            <dd class="col-sm-9">{{ _('user_levels.' + user.user_level) }}</dd> {# Display user level translation #}
+
+            <dt class="col-sm-3">{{ _('common.created_at') }}</dt>
+            <dd class="col-sm-9">{{ user.created_at.strftime('%Y-%m-%d %H:%M:%S') if user.created_at else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_at') }}</dt>
+            <dd class="col-sm-9">{{ user.updated_at.strftime('%Y-%m-%d %H:%M:%S') if user.updated_at else _('common.not_available_short') }}</dd>
+        </dl>
+    </div>
+</div>
+
+<!-- Edit User Modal (Same as in users.html, ensure it's included or loaded) -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editUserForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editUserModalLabel">{{ _('users.edit_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_user_id" name="user_id">
+                    <div class="mb-3">
+                        <label for="edit_username" class="form-label">{{ _('users.username') }}</label>
+                        <input type="text" class="form-control" id="edit_username" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_email" class="form-label">{{ _('users.email') }}</label>
+                        <input type="email" class="form-control" id="edit_email" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_user_level" class="form-label">{{ _('users.user_level') }}</label>
+                        <select class="form-select" id="edit_user_level" name="user_level" required>
+                            <option value="Admin">{{ _('user_levels.Admin') }}</option>
+                            <option value="Operator">{{ _('user_levels.Operator') }}</option>
+                            <option value="Contributor">{{ _('user_levels.Contributor') }}</option>
+                            <option value="Guest">{{ _('user_levels.Guest') }}</option>
+                        </select>
+                    </div>
+                    <hr>
+                    <p class="text-muted">{{ _('users.change_password_optional') }}</p>
+                    <div class="mb-3">
+                        <label for="edit_new_password" class="form-label">{{ _('users.new_password') }}</label>
+                        <input type="password" class="form-control" id="edit_new_password" name="new_password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_confirm_new_password" class="form-label">{{ _('users.confirm_new_password') }}</label>
+                        <input type="password" class="form-control" id="edit_confirm_new_password" name="confirm_new_password">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('common.save_changes_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete User Confirmation Modal -->
+<div class="modal fade" id="deleteUserModal" tabindex="-1" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteUserModalLabel">{{ _('common.delete') }} {{ _('sidebar.users') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+            </div>
+            <div class="modal-body">
+                {{ _('common.are_you_sure_delete', entity_name=_('sidebar.users')) }} <span id="delete_username_placeholder" class="fw-bold"></span>?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                <form id="deleteUserForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">{{ _('common.delete') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Script untuk mengisi data di modal edit
+        var editUserModal = document.getElementById('editUserModal');
+        editUserModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Tombol yang memicu modal
+            var userId = button.getAttribute('data-user-id');
+            var username = button.getAttribute('data-username');
+            var email = button.getAttribute('data-email');
+            var userLevel = button.getAttribute('data-user-level');
+
+            var modalTitle = editUserModal.querySelector('.modal-title');
+            var modalBodyInputId = editUserModal.querySelector('#edit_user_id');
+            var modalBodyInputUsername = editUserModal.querySelector('#edit_username');
+            var modalBodyInputEmail = editUserModal.querySelector('#edit_email');
+            var modalBodySelectLevel = editUserModal.querySelector('#edit_user_level');
+            var editForm = editUserModal.querySelector('#editUserForm');
+
+            modalTitle.textContent = "{{ _('users.edit_modal_title') }}: " + username;
+            modalBodyInputId.value = userId;
+            modalBodyInputUsername.value = username;
+            modalBodyInputEmail.value = email;
+            modalBodySelectLevel.value = userLevel;
+            
+            // Reset password fields
+            editUserModal.querySelector('#edit_new_password').value = '';
+            editUserModal.querySelector('#edit_confirm_new_password').value = '';
+
+            editForm.action = "{{ url_for('edit_user', user_id=0) }}".replace('0', userId);
+        });
+
+        // Script untuk mengisi data di modal delete
+        var deleteUserModal = document.getElementById('deleteUserModal');
+        deleteUserModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var userId = button.getAttribute('data-user-id');
+            var username = button.getAttribute('data-username');
+            var deleteUsernamePlaceholder = deleteUserModal.querySelector('#delete_username_placeholder');
+            var deleteForm = deleteUserModal.querySelector('#deleteUserForm');
+
+            deleteUsernamePlaceholder.textContent = username;
+            deleteForm.action = "{{ url_for('delete_user', user_id=0) }}".replace('0', userId);
+        });
+    });
+</script>
+{% endblock %}

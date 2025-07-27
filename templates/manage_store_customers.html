@@ -1,0 +1,121 @@
+<!-- templates/manage_store_customers.html -->
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('stores.manage_customers_title', store_name=store.store_name) }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('stores.manage_customers_title', store_name=store.store_name) }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('stores.manage_customers_title', store_name=store.store_name) }}</h1>
+    <div>
+        <a href="{{ url_for('view_store_detail', store_id=store.store_id) }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('stores.detail_title')) }}
+        </a>
+    </div>
+</div>
+
+{# Hanya Admin, Operator, Contributor yang bisa mengelola asosiasi #}
+{% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">{{ _('common.select_to_associate', entity_name=_('sidebar.customers')) }}</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ url_for('manage_store_customers', store_id=store.store_id) }}" method="GET" class="mb-3">
+            <div class="input-group">
+                <input type="search" class="form-control" placeholder="{{ _('common.search_placeholder', entity_name=_('sidebar.customers')) }}" name="search" value="{{ search_query if search_query }}">
+                <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+                {% if search_query %}
+                <a href="{{ url_for('manage_store_customers', store_id=store.store_id, page=page) }}" class="btn btn-outline-danger">{{ _('common.clear_search') }}</a>
+                {% endif %}
+            </div>
+        </form>
+
+        {% if available_customers %}
+        <form action="{{ url_for('manage_store_customers', store_id=store.store_id, page=page, search=search_query) }}" method="POST">
+            <div class="row">
+                {% for customer in available_customers %}
+                <div class="col-md-4 col-sm-6 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="customer_ids" value="{{ customer.customer_id }}" id="customer_{{ customer.customer_id }}"
+                               {% if customer.customer_id in associated_customer_ids %}checked{% endif %}>
+                        <label class="form-check-label" for="customer_{{ customer.customer_id }}">
+                            {{ customer.customer_name }}
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4 text-end">
+                <button type="submit" class="btn btn-primary">{{ _('common.save_associations') }}</button>
+            </div>
+        </form>
+
+        <!-- Pagination Controls for available customers -->
+        <nav aria-label="Page navigation for available customers" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=1, search=search_query) }}" aria-label="{{ _('common.first_page') }}">
+                        <span aria-hidden="true">&laquo;&laquo;</span>
+                    </a>
+                </li>
+                <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=page-1, search=search_query) }}" aria-label="{{ _('common.previous_page') }}">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                
+                {% set pages_to_show = 5 %} {# Jumlah halaman yang akan ditampilkan di sekitar halaman saat ini #}
+                {% set start_page = [1, page - (pages_to_show // 2)] | max %}
+                {% set end_page = [total_pages, page + (pages_to_show // 2)] | min %}
+
+                {% if start_page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=1, search=search_query) }}">1</a>
+                    </li>
+                    {% if start_page > 2 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endif %}
+
+                {% for p in range(start_page, end_page + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=p, search=search_query) }}">{{ p }}</a>
+                    </li>
+                {% endfor %}
+
+                {% if end_page < total_pages %}
+                    {% if end_page < total_pages - 1 %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=total_pages, search=search_query) }}">{{ total_pages }}</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=page+1, search=search_query) }}" aria-label="{{ _('common.next_page') }}">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('manage_store_customers', store_id=store.store_id, page=total_pages, search=search_query) }}" aria-label="{{ _('common.last_page') }}">
+                        <span aria-hidden="true">&raquo;&raquo;</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            {{ _('common.no_available_to_associate', entity_name=_('sidebar.customers')) }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+    {{ _('flash_messages.permission_denied') }}
+</div>
+{% endif %}
+{% endblock %}

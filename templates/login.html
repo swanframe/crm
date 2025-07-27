@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if register_mode %}{{ _('register.title') }}{% else %}{{ _('login.title') }}{% endif %} - {{ _('app_name') }}
+{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg p-4" style="width: 100%; max-width: 400px; border-radius: 1rem;">
+        <div class="card-body">
+            <h2 class="card-title text-center mb-4">
+                {% if register_mode %}{{ _('register.title') }}{% else %}{{ _('login.title') }}{% endif %}
+            </h2>
+            <form method="POST" action="{% if register_mode %}{{ url_for('register') }}{% else %}{{ url_for('login') }}{% endif %}">
+                {% if not register_mode %}
+                <div class="mb-3">
+                    <label for="username_or_email" class="form-label">{{ _('login.username_or_email_label') }}</label>
+                    <input type="text" class="form-control" id="username_or_email" name="username_or_email" required>
+                </div>
+                {% else %}
+                <div class="mb-3">
+                    <label for="username" class="form-label">{{ _('register.username_label') }}</label>
+                    <input type="text" class="form-control" id="username" name="username" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">{{ _('register.email_label') }}</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <label for="password" class="form-label">{{ _('login.password_label') }}</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                {% if register_mode %}
+                <div class="mb-3">
+                    <label for="confirm_password" class="form-label">{{ _('register.confirm_password_label') }}</label>
+                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                </div>
+                {% endif %}
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg rounded-pill">
+                        {% if register_mode %}{{ _('register.register_button') }}{% else %}{{ _('login.login_button') }}{% endif %}
+                    </button>
+                </div>
+            </form>
+            <div class="text-center mt-3">
+                {% if register_mode %}
+                {{ _('register.already_have_account_question') }} <a href="{{ url_for('login') }}">{{ _('register.login_link') }}</a>
+                {% else %}
+                {{ _('login.no_account_question') }} <a href="{{ url_for('register') }}"> {{ _('login.register_link') }}</a>
+                {% endif %}
+            </div>
+            {# Language selection dropdown added here #}
+            <div class="text-center mt-4">
+                <select class="form-select form-select-sm d-inline-block w-auto" id="language-select" aria-label="Language selector">
+                    {% for lang_code in supported_languages %}
+                        <option value="{{ lang_code }}" {% if g.lang == lang_code %}selected{% endif %}>
+                            {{ { 'en': 'English', 'id': 'Bahasa Indonesia', 'zh': '中文' }[lang_code] }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('dashboard.title') }} - {{ _('app_name') }}{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <!-- Sidebar -->
+    <div class="sidebar p-3" id="sidebar">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-building fs-4 me-2 text-primary"></i>
+                <span class="fw-bold">{{ _('app_name') }}</span>
+            </div>
+            <button class="btn btn-sm d-lg-none" id="sidebarToggle">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        
+        <ul class="nav flex-column">
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2 me-2"></i> {{ _('sidebar.dashboard') }}
+                </a>
+            </li>
+            {# Customers module visibility: Admin, Operator, Contributor #}
+            {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'list_customers' %}active{% endif %}" href="{{ url_for('list_customers') }}">
+                    <i class="bi bi-people me-2"></i> {{ _('sidebar.customers') }}
+                </a>
+            </li>
+            {% endif %}
+            {# Stores module visibility: Admin, Operator, Contributor #}
+            {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'list_stores' %}active{% endif %}" href="{{ url_for('list_stores') }}">
+                    <i class="bi bi-shop me-2"></i> {{ _('sidebar.stores') }}
+                </a>
+            </li>
+            {% endif %}
+            {# Users module visibility: Admin only #}
+            {% if g.user.user_level == 'Admin' %}
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'list_users' %}active{% endif %}" href="{{ url_for('list_users') }}">
+                    <i class="bi bi-person-gear me-2"></i> {{ _('sidebar.users') }}
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="{{ url_for('profile') }}">
+                    <i class="bi bi-person me-2"></i> {{ _('sidebar.profile') }}
+                </a>
+            </li>
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}" href="{{ url_for('settings') }}">
+                    <i class="bi bi-gear me-2"></i> {{ _('sidebar.settings') }}
+                </a>
+            </li>
+            <!-- Tambahkan menu lain di sini jika diperlukan -->
+        </ul>
+        
+        <div class="mt-auto pt-3 border-top">
+            <div class="d-flex align-items-center">
+                <div class="me-2">
+                    <img src="https://ui-avatars.com/api/?name={{ g.user.username }}&background=0D8ABC&color=fff" class="rounded-circle" width="35" alt="User Avatar">
+                </div>
+                <div>
+                    <div class="fw-bold small">{{ g.user.username }}</div>
+                    <div class="text-muted small">{{ g.user.email }}</div>
+                    <div class="text-muted small">Level: {{ _('user_levels.' + g.user.user_level) }}</div> {# Display user level #}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Content Area -->
+    <div class="content-area" id="contentArea">
+        <!-- Header -->
+        <nav class="navbar navbar-expand-lg bg-white">
+            <div class="container-fluid">
+                <button class="btn d-lg-none me-2" id="mobileSidebarToggle">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="d-flex align-items-center">
+                    <span class="navbar-brand mb-0 h1 fs-6">{% block page_title %}{{ _('dashboard.title') }}{% endblock %}</span>
+                </div>
+                
+                <div class="d-flex align-items-center ms-auto">
+                    {# Dropdown Pemilihan Bahasa #}
+                    <div class="dropdown me-3">
+                        <select class="form-select form-select-sm" id="language-select" aria-label="Language selector">
+                            {% for lang_code in supported_languages %}
+                                <option value="{{ lang_code }}" {% if g.lang == lang_code %}selected{% endif %}>
+                                    {{ { 'en': 'English', 'id': 'Bahasa Indonesia', 'zh': '中文' }[lang_code] }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="dropdown">
+                        <a href="#" class="text-decoration-none d-flex align-items-center" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <img src="https://ui-avatars.com/api/?name={{ g.user.username }}&background=0D8ABC&color=fff" class="rounded-circle" width="35" alt="User Avatar">
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('profile') }}"><i class="bi bi-person me-2"></i>{{ _('sidebar.profile') }}</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('settings') }}"><i class="bi bi-gear me-2"></i>{{ _('sidebar.settings') }}</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right me-2"></i>{{ _('sidebar.logout') }}</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content (Konten spesifik halaman) -->
+        <div class="container-fluid p-4">
+            {% block page_content %}
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4 col-sm-12 mb-3"> {# Changed to col-md-4 for 3 columns #}
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_customers_card') }}</h6>
+                                    <h4 class="fw-bold mb-0">{{ total_customers }}</h4>
+                                </div>
+                                <div class="stat-card-icon bg-primary bg-opacity-10 text-primary">
+                                    <i class="bi bi-people"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4 col-sm-12 mb-3"> {# Changed to col-md-4 #}
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_stores_card') }}</h6>
+                                    <h4 class="fw-bold mb-0">{{ total_stores }}</h4>
+                                </div>
+                                <div class="stat-card-icon bg-success bg-opacity-10 text-success">
+                                    <i class="bi bi-shop"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 col-sm-12 mb-3"> {# New: Total Users Card #}
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_users_card') }}</h6>
+                                    <h4 class="fw-bold mb-0">{{ total_users }}</h4>
+                                </div>
+                                <div class="stat-card-icon bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Customers & Stores -->
+            <div class="row mb-4">
+                <div class="col-md-6 mb-4">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-header bg-white border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ _('dashboard.recent_customers_section') }}</h5>
+                                <a href="{{ url_for('list_customers') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ _('common.id') }}</th>
+                                                <th>{{ _('customers.customer_name') }}</th>
+                                                <th>{{ _('common.created_by') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for customer in recent_customers %}
+                                            <tr>
+                                                <td>{{ customer.customer_id }}</td>
+                                                <td>{{ customer.customer_name }}</td>
+                                                <td>{{ user_map.get(customer.created_by, 'N/A') }}</td>
+                                            </tr>
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="3" class="text-center">{{ _('dashboard.no_recent_customers') }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-header bg-white border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ _('dashboard.recent_stores_section') }}</h5>
+                                <a href="{{ url_for('list_stores') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ _('common.id') }}</th>
+                                                <th>{{ _('stores.store_name') }}</th>
+                                                <th>{{ _('common.created_by') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for store in recent_stores %}
+                                            <tr>
+                                                <td>{{ store.store_id }}</td>
+                                                <td>{{ store.store_name }}</td>
+                                                <td>{{ user_map.get(store.created_by, 'N/A') }}</td>
+                                            </tr>
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="3" class="text-center">{{ _('dashboard.no_recent_stores') }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="alert alert-info" role="alert">
+                {{ _('dashboard.dashboard_info_alert') }}
+            </div>
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS dari referensi frontend yang disesuaikan */
+    :root {
+        --sidebar-width: 250px;
+        --header-height: 60px;
+        --transition-speed: 0.3s;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f8f9fa;
+        overflow-x: hidden;
+    }
+    
+    .main-container {
+        display: flex;
+        min-height: 100vh;
+    }
+    
+    .sidebar {
+        width: var(--sidebar-width);
+        height: 100vh;
+        position: fixed;
+        background-color: #fff;
+        box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        transition: all var(--transition-speed);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .content-area {
+        flex: 1;
+        margin-left: var(--sidebar-width);
+        transition: all var(--transition-speed);
+    }
+    
+    .navbar {
+        height: var(--header-height);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    
+    .dashboard-card {
+        border: none;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+    }
+    
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .table-container {
+        background-color: #fff;
+        border-radius: 0.375rem;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    .table thead th {
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background-color: #f8f9fa;
+    }
+    
+    .table tbody td {
+        vertical-align: middle;
+    }
+    
+    .pagination .page-item .page-link {
+        font-size: 0.85rem;
+    }
+    
+    .stat-card-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    
+    @media (max-width: 992px) {
+        .sidebar {
+            transform: translateX(-100%);
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        
+        .content-area {
+            margin-left: 0;
+        }
+        
+        .content-area.sidebar-active {
+            margin-left: var(--sidebar-width);
+        }
+    }
+</style>
+
+<script>
+    // Mobile sidebar toggle
+    document.addEventListener('DOMContentLoaded', function() {
+        const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const contentArea = document.getElementById('contentArea');
+        const sidebarToggle = document.getElementById('sidebarToggle'); // Untuk tombol X di sidebar
+
+        if (mobileSidebarToggle) {
+            mobileSidebarToggle.addEventListener('click', function() {
+                sidebar.classList.toggle('active');
+                contentArea.classList.toggle('sidebar-active');
+            });
+        }
+        
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', function() {
+                sidebar.classList.remove('active');
+                contentArea.classList.remove('sidebar-active');
+            });
+        }
+    });
+</script>
+{% endblock %}
