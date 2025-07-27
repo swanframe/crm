@@ -72,8 +72,8 @@ To set up the project locally, follow these steps:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/yourusername/crm-system.git
-   cd crm-system
+   git clone https://github.com/swanframe/crm.git
+   cd crm
    ```
 
 2. **Create a Virtual Environment**:
