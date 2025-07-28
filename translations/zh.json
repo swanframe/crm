@@ -19,26 +19,28 @@
         "all_fields_required_flash": "所有字段均为必填项。",
         "password_mismatch_flash": "密码确认不匹配。",
         "registration_success_flash": "注册成功！请登录。",
-        "user_exists_flash": "用户名或邮箱已注册。",
-        "already_have_account_question": "已有账户？",
-        "login_link": "在此登录"
+        "user_exists_flash": "用户名或邮箱已注册。"
     },
     "dashboard": {
         "title": "仪表盘",
         "total_customers_card": "客户总数",
         "total_stores_card": "商店总数",
         "total_users_card": "用户总数",
+        "total_reservations_card": "预订总数",
         "recent_customers_section": "最新客户",
         "recent_stores_section": "最新商店",
+        "recent_reservations_section": "最新预订",
         "view_all_button": "查看全部",
         "no_recent_customers": "没有最新客户。",
         "no_recent_stores": "没有最新商店。",
+        "no_recent_reservations": "没有最新预订。",
         "dashboard_info_alert": "这是您的仪表盘页面。您可以使用侧边栏导航管理客户和商店。"
     },
     "sidebar": {
         "dashboard": "仪表盘",
         "customers": "客户",
         "stores": "商店",
+        "reservations": "预订",
         "users": "用户",
         "profile": "个人资料",
         "settings": "设置",
@@ -84,7 +86,20 @@
         "user_deleted_success": "用户删除成功。",
         "user_delete_failed": "删除用户失败。",
         "cannot_delete_self": "您不能删除自己的账户。",
-        "permission_denied": "您没有权限访问此页面。"
+        "permission_denied": "您没有权限访问此页面。",
+        "reservation_not_found": "未找到预订。",
+        "reservation_all_fields_required": "客户、商店和预订日期与时间为必填项。",
+        "reservation_date_invalid": "预订日期与时间格式无效。",
+        "reservation_added_success": "预订添加成功！",
+        "reservation_added_success_redirect": "预订 ID {reservation_id} 添加成功！正在重定向到详情...",
+        "reservation_add_failed": "添加预订失败。",
+        "reservation_add_failed_generic": "添加预订失败: {error}",
+        "reservation_updated_success": "预订更新成功！",
+        "reservation_update_failed": "更新预订失败。",
+        "reservation_update_failed_generic": "更新预订失败: {error}",
+        "reservation_deleted_success": "预订删除成功。",
+        "reservation_delete_failed": "删除预订失败。",
+        "reservation_guests_invalid": "来宾人数必须是有效的整数。"
     },
     "common": {
         "id": "ID",
@@ -120,7 +135,8 @@
         "whatsapp": "WhatsApp",
         "clear_search": "清除搜索",
         "sorted_ascending": "升序排列",
-        "sorted_descending": "降序排列"
+        "sorted_descending": "降序排列",
+        "select_placeholder": "选择 {entity_name}"
     },
     "profile": {
         "title": "用户资料",
@@ -186,5 +202,26 @@
         "Operator": "操作员",
         "Contributor": "贡献者",
         "Guest": "访客"
+    },
+    "reservations": {
+        "management_title": "预订管理",
+        "reservation_datetime": "日期与时间",
+        "reservation_status": "状态",
+        "reservation_notes": "备注",
+        "add_modal_title": "添加新预订",
+        "edit_modal_title": "编辑预订",
+        "detail_title": "预订详情",
+        "reservation_information": "预订信息",
+        "search_customer_placeholder": "按姓名或代码搜索客户...",
+        "reservation_event": "活动",
+        "reservation_room": "房间",
+        "reservation_guests": "来宾人数",
+        "reservation_code": "预订代码"
+    },
+    "reservation_statuses": {
+        "Pending": "待处理",
+        "Confirmed": "已确认",
+        "Cancelled": "已取消",
+        "Completed": "已完成"
     }
 }

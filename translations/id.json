@@ -19,26 +19,28 @@
         "all_fields_required_flash": "Semua kolom wajib diisi.",
         "password_mismatch_flash": "Konfirmasi kata sandi tidak cocok.",
         "registration_success_flash": "Pendaftaran berhasil! Silakan masuk.",
-        "user_exists_flash": "Nama Pengguna atau Email sudah terdaftar.",
-        "already_have_account_question": "Sudah punya akun?",
-        "login_link": "Masuk di sini"
+        "user_exists_flash": "Nama Pengguna atau Email sudah terdaftar."
     },
     "dashboard": {
         "title": "Dasbor",
         "total_customers_card": "Total Pelanggan",
         "total_stores_card": "Total Toko",
         "total_users_card": "Total Pengguna",
+        "total_reservations_card": "Total Reservasi",
         "recent_customers_section": "Pelanggan Terbaru",
         "recent_stores_section": "Toko Terbaru",
+        "recent_reservations_section": "Reservasi Terbaru",
         "view_all_button": "Lihat Semua",
         "no_recent_customers": "Tidak ada pelanggan terbaru.",
         "no_recent_stores": "Tidak ada toko terbaru.",
+        "no_recent_reservations": "Tidak ada reservasi terbaru.",
         "dashboard_info_alert": "Ini adalah halaman dasbor Anda. Anda dapat mengelola pelanggan dan toko menggunakan navigasi bilah sisi."
     },
     "sidebar": {
         "dashboard": "Dasbor",
         "customers": "Pelanggan",
         "stores": "Toko",
+        "reservations": "Reservasi",
         "users": "Pengguna",
         "profile": "Profil",
         "settings": "Pengaturan",
@@ -84,7 +86,20 @@
         "user_deleted_success": "Pengguna berhasil dihapus.",
         "user_delete_failed": "Gagal menghapus pengguna.",
         "cannot_delete_self": "Anda tidak dapat menghapus akun Anda sendiri.",
-        "permission_denied": "Anda tidak memiliki izin untuk mengakses halaman ini."
+        "permission_denied": "Anda tidak memiliki izin untuk mengakses halaman ini.",
+        "reservation_not_found": "Reservasi tidak ditemukan.",
+        "reservation_all_fields_required": "Pelanggan, Toko, dan Tanggal & Waktu Reservasi wajib diisi.",
+        "reservation_date_invalid": "Format tanggal & waktu reservasi tidak valid.",
+        "reservation_added_success": "Reservasi berhasil ditambahkan!",
+        "reservation_added_success_redirect": "Reservasi ID {reservation_id} berhasil ditambahkan! Mengarahkan ke detail...",
+        "reservation_add_failed": "Gagal menambahkan reservasi.",
+        "reservation_add_failed_generic": "Gagal menambahkan reservasi: {error}",
+        "reservation_updated_success": "Reservasi berhasil diperbarui!",
+        "reservation_update_failed": "Gagal memperbarui reservasi.",
+        "reservation_update_failed_generic": "Gagal memperbarui reservasi: {error}",
+        "reservation_deleted_success": "Reservasi berhasil dihapus.",
+        "reservation_delete_failed": "Gagal menghapus reservasi.",
+        "reservation_guests_invalid": "Jumlah tamu harus berupa bilangan bulat yang valid."
     },
     "common": {
         "id": "ID",
@@ -120,7 +135,8 @@
         "whatsapp": "WhatsApp",
         "clear_search": "Bersihkan Pencarian",
         "sorted_ascending": "Diurutkan Menaik",
-        "sorted_descending": "Diurutkan Menurun"
+        "sorted_descending": "Diurutkan Menurun",
+        "select_placeholder": "Pilih {entity_name}"
     },
     "profile": {
         "title": "Profil Pengguna",
@@ -186,5 +202,26 @@
         "Operator": "Operator",
         "Contributor": "Kontributor",
         "Guest": "Tamu"
+    },
+    "reservations": {
+        "management_title": "Manajemen Reservasi",
+        "reservation_datetime": "Tanggal & Waktu",
+        "reservation_status": "Status",
+        "reservation_notes": "Catatan",
+        "add_modal_title": "Tambah Reservasi Baru",
+        "edit_modal_title": "Edit Reservasi",
+        "detail_title": "Detail Reservasi",
+        "reservation_information": "Informasi Reservasi",
+        "search_customer_placeholder": "Cari pelanggan berdasarkan nama atau kode...",
+        "reservation_event": "Acara",
+        "reservation_room": "Ruangan",
+        "reservation_guests": "Jumlah Tamu",
+        "reservation_code": "Kode Reservasi"
+    },
+    "reservation_statuses": {
+        "Pending": "Tertunda",
+        "Confirmed": "Dikonfirmasi",
+        "Cancelled": "Dibatalkan",
+        "Completed": "Selesai"
     }
 }

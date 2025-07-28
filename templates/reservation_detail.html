@@ -1,0 +1,380 @@
+<!-- templates/reservation_detail.html -->
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('reservations.detail_title') }} - {{ reservation.reservation_id }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('reservations.detail_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('reservations.detail_title') }}: {{ reservation.reservation_id }}</h1>
+    <div>
+        <a href="{{ url_for('list_reservations') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('sidebar.reservations')) }}
+        </a>
+        {# Admin, Operator, Contributor can edit #}
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+        <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editReservationModal"
+                data-reservation-id="{{ reservation.reservation_id }}"
+                data-customer-id="{{ reservation.customer_id }}"
+                data-store-id="{{ reservation.store_id }}"
+                data-reservation-datetime="{{ reservation.reservation_datetime.strftime('%Y-%m-%dT%H:%M') if reservation.reservation_datetime else '' }}"
+                data-reservation-status="{{ reservation.reservation_status }}"
+                data-reservation-notes="{{ reservation.reservation_notes if reservation.reservation_notes else '' }}"
+                data-customer-name="{{ reservation.get_customer_name() }}" {# Pass customer name for modal title and pre-filling search input #}
+                {# NEW: Pass new optional fields to the edit modal #}
+                data-reservation-event="{{ reservation.reservation_event if reservation.reservation_event else '' }}"
+                data-reservation-room="{{ reservation.reservation_room if reservation.reservation_room else '' }}"
+                data-reservation-guests="{{ reservation.reservation_guests if reservation.reservation_guests is not none else '' }}">
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
+        </button>
+        {% endif %}
+        {# Admin and Operator can delete #}
+        {% if g.user.user_level in ['Admin', 'Operator'] %}
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteReservationModal" data-reservation-id="{{ reservation.reservation_id }}" data-customer-name="{{ reservation.get_customer_name() }}">
+            <i class="bi bi-trash me-1"></i>{{ _('common.delete') }}
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">{{ _('reservations.reservation_information') }}</h5>
+    </div>
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">{{ _('common.id') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_id }}</dd>
+
+            {# NEW: Reservation Code #}
+            <dt class="col-sm-3">{{ _('reservations.reservation_code') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_code if reservation.reservation_code else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('customers.customer_name') }}</dt>
+            <dd class="col-sm-9">{{ reservation.get_customer_name() }}</dd>
+
+            {# NEW: Customer Code #}
+            <dt class="col-sm-3">{{ _('customers.customer_code') }}</dt>
+            <dd class="col-sm-9">{{ customer_details.customer_code if customer_details and customer_details.customer_code else _('common.not_available_short') }}</dd>
+
+            {# NEW: Membership Status #}
+            <dt class="col-sm-3">{{ _('customers.membership_status') }}</dt>
+            <dd class="col-sm-9">
+                {% if customer_details and customer_details.customer_is_member %}
+                    <span class="badge bg-success">{{ _('customers.member_status_member') }}</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ _('customers.member_status_non_member') }}</span>
+                {% endif %}
+            </dd>
+
+            {# NEW: Organization #}
+            <dt class="col-sm-3">{{ _('customers.organization') }}</dt>
+            <dd class="col-sm-9">{{ customer_details.customer_organization if customer_details and customer_details.customer_organization else _('common.not_available_short') }}</dd>
+
+            {# NEW: Telephone #}
+            <dt class="col-sm-3">{{ _('common.telephone') }}</dt>
+            <dd class="col-sm-9">{{ customer_details.customer_telephone if customer_details and customer_details.customer_telephone else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('stores.store_name') }}</dt>
+            <dd class="col-sm-9">{{ reservation.get_store_name() }}</dd>
+
+            <dt class="col-sm-3">{{ _('reservations.reservation_datetime') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_datetime.strftime('%Y-%m-%d %H:%M:%S') if reservation.reservation_datetime else _('common.not_available_short') }}</dd>
+
+            {# NEW: reservation_event #}
+            <dt class="col-sm-3">{{ _('reservations.reservation_event') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_event if reservation.reservation_event else _('common.not_available_short') }}</dd>
+
+            {# NEW: reservation_room #}
+            <dt class="col-sm-3">{{ _('reservations.reservation_room') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_room if reservation.reservation_room else _('common.not_available_short') }}</dd>
+
+            {# NEW: reservation_guests #}
+            <dt class="col-sm-3">{{ _('reservations.reservation_guests') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_guests if reservation.reservation_guests is not none else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('reservations.reservation_status') }}</dt>
+            <dd class="col-sm-9">
+                <span class="badge bg-{{ {
+                    'Pending': 'warning',
+                    'Confirmed': 'success',
+                    'Cancelled': 'danger',
+                    'Completed': 'info'
+                }[reservation.reservation_status] | default('secondary') }}">
+                    {{ _('reservation_statuses.' + reservation.reservation_status) }}
+                </span>
+            </dd>
+
+            <dt class="col-sm-3">{{ _('reservations.reservation_notes') }}</dt>
+            <dd class="col-sm-9">{{ reservation.reservation_notes if reservation.reservation_notes else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.created_by') }}</dt>
+            <dd class="col-sm-9">{{ created_by_username }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.created_at') }}</dt>
+            <dd class="col-sm-9">{{ reservation.created_at.strftime('%Y-%m-%d %H:%M:%S') if reservation.created_at else _('common.not_available_short') }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_by') }}</dt>
+            <dd class="col-sm-9">{{ updated_by_username }}</dd>
+
+            <dt class="col-sm-3">{{ _('common.updated_at') }}</dt>
+            <dd class="col-sm-9">{{ reservation.updated_at.strftime('%Y-%m-%d %H:%M:%S') if reservation.updated_at else _('common.not_available_short') }}</dd>
+        </dl>
+    </div>
+</div>
+
+<!-- Edit Reservation Modal (Same as in reservations.html, ensure it's included or loaded) -->
+<div class="modal fade" id="editReservationModal" tabindex="-1" aria-labelledby="editReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editReservationForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editReservationModalLabel">{{ _('reservations.edit_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_reservation_id" name="reservation_id">
+                    <div class="mb-3">
+                        <label for="edit_customer_search" class="form-label">{{ _('customers.customer_name') }}</label>
+                        <input type="text" class="form-control" id="edit_customer_search" 
+                               placeholder="{{ _('reservations.search_customer_placeholder') }}" autocomplete="off" required>
+                        <input type="hidden" id="edit_customer_id_hidden" name="customer_id" required>
+                        <div id="edit_customer_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_store_id" class="form-label">{{ _('stores.store_name') }}</label>
+                        <select class="form-select" id="edit_store_id" name="store_id" required>
+                            <option value="">{{ _('common.select_placeholder', entity_name=_('sidebar.stores')) }}</option>
+                            {% for store in all_stores %}
+                                <option value="{{ store.store_id }}">{{ store.store_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_reservation_datetime" class="form-label">{{ _('reservations.reservation_datetime') }}</label>
+                        <input type="datetime-local" class="form-control" id="edit_reservation_datetime" name="reservation_datetime" required>
+                    </div>
+                    {# NEW: reservation_event field for edit modal #}
+                    <div class="mb-3">
+                        <label for="edit_reservation_event" class="form-label">{{ _('reservations.reservation_event') }}</label>
+                        <input type="text" class="form-control" id="edit_reservation_event" name="reservation_event">
+                    </div>
+                    {# NEW: reservation_room field for edit modal #}
+                    <div class="mb-3">
+                        <label for="edit_reservation_room" class="form-label">{{ _('reservations.reservation_room') }}</label>
+                        <input type="text" class="form-control" id="edit_reservation_room" name="reservation_room">
+                    </div>
+                    {# NEW: reservation_guests field for edit modal #}
+                    <div class="mb-3">
+                        <label for="edit_reservation_guests" class="form-label">{{ _('reservations.reservation_guests') }}</label>
+                        <input type="number" class="form-control" id="edit_reservation_guests" name="reservation_guests" min="1">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_reservation_status" class="form-label">{{ _('reservations.reservation_status') }}</label>
+                        <select class="form-select" id="edit_reservation_status" name="reservation_status" required>
+                            <option value="Pending">{{ _('reservation_statuses.Pending') }}</option>
+                            <option value="Confirmed">{{ _('reservation_statuses.Confirmed') }}</option>
+                            <option value="Cancelled">{{ _('reservation_statuses.Cancelled') }}</option>
+                            <option value="Completed">{{ _('reservation_statuses.Completed') }}</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_reservation_notes" class="form-label">{{ _('reservations.reservation_notes') }}</label>
+                        <textarea class="form-control" id="edit_reservation_notes" name="reservation_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('common.save_changes_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Reservation Confirmation Modal -->
+<div class="modal fade" id="deleteReservationModal" tabindex="-1" aria-labelledby="deleteReservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteReservationModalLabel">{{ _('common.delete') }} {{ _('sidebar.reservations') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+            </div>
+            <div class="modal-body">
+                {{ _('common.are_you_sure_delete', entity_name=_('sidebar.reservations')) }} <span id="delete_reservation_id_placeholder" class="fw-bold"></span> ({{ _('customers.customer_name') }}: <span id="delete_customer_name_placeholder" class="fw-bold"></span>)?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                <form id="deleteReservationForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">{{ _('common.delete') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Utility function for debouncing (copied from reservations.html for self-contained script)
+        function debounce(func, delay) {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
+            };
+        }
+
+        // Function to handle customer search and populate suggestions (copied for self-contained script)
+        function setupCustomerSearch(searchInputId, hiddenInputId, suggestionsDivId) {
+            const searchInput = document.getElementById(searchInputId);
+            const hiddenInput = document.getElementById(hiddenInputId);
+            const suggestionsDiv = document.getElementById(suggestionsDivId);
+
+            if (!searchInput || !hiddenInput || !suggestionsDiv) {
+                console.error('One or more elements not found for customer search setup:', { searchInputId, hiddenInputId, suggestionsDivId });
+                return;
+            }
+
+            const fetchCustomers = debounce(async (query) => {
+                if (query.length < 2) { // Only search if query is at least 2 characters long
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.style.display = 'none';
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/customers/search?q=${encodeURIComponent(query)}`);
+                    const customers = await response.json();
+                    
+                    suggestionsDiv.innerHTML = ''; // Clear previous suggestions
+                    if (customers.length > 0) {
+                        customers.forEach(customer => {
+                            const item = document.createElement('a');
+                            item.href = '#';
+                            item.classList.add('list-group-item', 'list-group-item-action');
+                            item.textContent = `${customer.name} (ID: ${customer.id}, Code: ${customer.code})`;
+                            item.setAttribute('data-customer-id', customer.id);
+                            item.setAttribute('data-customer-name', customer.name);
+                            item.addEventListener('click', (e) => {
+                                e.preventDefault();
+                                searchInput.value = customer.name;
+                                hiddenInput.value = customer.id;
+                                suggestionsDiv.innerHTML = '';
+                                suggestionsDiv.style.display = 'none';
+                            });
+                            suggestionsDiv.appendChild(item);
+                        });
+                        suggestionsDiv.style.display = 'block'; // Show suggestions
+                    } else {
+                        suggestionsDiv.style.display = 'none'; // Hide if no results
+                    }
+                } catch (error) {
+                    console.error('Error fetching customers:', error);
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.style.display = 'none';
+                }
+            }, 300); // 300ms debounce delay
+
+            searchInput.addEventListener('input', (e) => {
+                fetchCustomers(e.target.value);
+                // Clear hidden ID if text input changes (user might be typing a new customer)
+                if (hiddenInput.value && searchInput.value !== (searchInput.dataset.selectedCustomerName || '')) {
+                    hiddenInput.value = '';
+                }
+            });
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.style.display = 'none';
+                }
+            });
+
+            // When the modal is hidden, clear the search input and hidden ID
+            const modal = searchInput.closest('.modal');
+            if (modal) {
+                modal.addEventListener('hidden.bs.modal', () => {
+                    searchInput.value = '';
+                    hiddenInput.value = '';
+                    suggestionsDiv.innerHTML = '';
+                    suggestionsDiv.style.display = 'none';
+                    delete searchInput.dataset.selectedCustomerName; // Clear stored name
+                });
+            }
+        }
+
+        // Setup for Edit Reservation Modal (on this page)
+        setupCustomerSearch('edit_customer_search', 'edit_customer_id_hidden', 'edit_customer_suggestions');
+
+        // Script to populate data in the edit modal
+        var editReservationModal = document.getElementById('editReservationModal');
+        editReservationModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var reservationId = button.getAttribute('data-reservation-id');
+            var customerId = button.getAttribute('data-customer-id');
+            var storeId = button.getAttribute('data-store-id');
+            var reservationDatetime = button.getAttribute('data-reservation-datetime');
+            var reservationStatus = button.getAttribute('data-reservation-status');
+            var reservationNotes = button.getAttribute('data-reservation-notes');
+            var customerName = button.getAttribute('data-customer-name');
+            // NEW: Get new optional fields
+            var reservationEvent = button.getAttribute('data-reservation-event');
+            var reservationRoom = button.getAttribute('data-reservation-room');
+            var reservationGuests = button.getAttribute('data-reservation-guests');
+
+
+            var modalTitle = editReservationModal.querySelector('.modal-title');
+            var modalBodyInputId = editReservationModal.querySelector('#edit_reservation_id');
+            var modalBodyInputCustomerSearch = editReservationModal.querySelector('#edit_customer_search');
+            var modalBodyInputCustomerIdHidden = editReservationModal.querySelector('#edit_customer_id_hidden');
+            var modalBodySelectStoreId = editReservationModal.querySelector('#edit_store_id');
+            var modalBodyInputDatetime = editReservationModal.querySelector('#edit_reservation_datetime');
+            var modalBodySelectStatus = editReservationModal.querySelector('#edit_reservation_status');
+            var modalBodyTextareaNotes = editReservationModal.querySelector('#edit_reservation_notes');
+            // NEW: Select new input fields
+            var modalBodyInputEvent = editReservationModal.querySelector('#edit_reservation_event');
+            var modalBodyInputRoom = editReservationModal.querySelector('#edit_reservation_room');
+            var modalBodyInputGuests = editReservationModal.querySelector('#edit_reservation_guests');
+
+            var editForm = editReservationModal.querySelector('#editReservationForm');
+
+            modalTitle.textContent = "{{ _('reservations.edit_modal_title') }}: " + reservationId + " - " + customerName;
+            modalBodyInputId.value = reservationId;
+            
+            // Set the search input and hidden ID for customer
+            modalBodyInputCustomerSearch.value = customerName;
+            modalBodyInputCustomerSearch.dataset.selectedCustomerName = customerName; // Store original name
+            modalBodyInputCustomerIdHidden.value = customerId;
+
+            modalBodySelectStoreId.value = storeId;
+            modalBodyInputDatetime.value = reservationDatetime;
+            modalBodySelectStatus.value = reservationStatus;
+            modalBodyTextareaNotes.value = reservationNotes;
+            // NEW: Populate new input fields
+            modalBodyInputEvent.value = reservationEvent;
+            modalBodyInputRoom.value = reservationRoom;
+            modalBodyInputGuests.value = reservationGuests;
+
+            editForm.action = "{{ url_for('edit_reservation', reservation_id=0) }}".replace('0', reservationId);
+        });
+
+        // Script to populate data in the delete modal
+        var deleteReservationModal = document.getElementById('deleteReservationModal');
+        deleteReservationModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var reservationId = button.getAttribute('data-reservation-id');
+            var customerName = button.getAttribute('data-customer-name');
+            var deleteReservationIdPlaceholder = deleteReservationModal.querySelector('#delete_reservation_id_placeholder');
+            var deleteCustomerNamePlaceholder = deleteReservationModal.querySelector('#delete_customer_name_placeholder');
+            var deleteForm = deleteReservationModal.querySelector('#deleteReservationForm');
+
+            deleteReservationIdPlaceholder.textContent = reservationId;
+            deleteCustomerNamePlaceholder.textContent = customerName;
+            deleteForm.action = "{{ url_for('delete_reservation', reservation_id=0) }}".replace('0', reservationId);
+        });
+    });
+</script>
+{% endblock %}

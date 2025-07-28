@@ -19,26 +19,28 @@
         "all_fields_required_flash": "All fields are required.",
         "password_mismatch_flash": "Password confirmation does not match.",
         "registration_success_flash": "Registration successful! Please log in.",
-        "user_exists_flash": "Username or Email is already registered.",
-        "already_have_account_question": "Already have an account?",
-        "login_link": "Login here"
+        "user_exists_flash": "Username or Email is already registered."
     },
     "dashboard": {
         "title": "Dashboard",
         "total_customers_card": "Total Customers",
         "total_stores_card": "Total Stores",
         "total_users_card": "Total Users",
+        "total_reservations_card": "Total Reservations",
         "recent_customers_section": "Recent Customers",
         "recent_stores_section": "Recent Stores",
+        "recent_reservations_section": "Recent Reservations",
         "view_all_button": "View All",
         "no_recent_customers": "No recent customers.",
         "no_recent_stores": "No recent stores.",
+        "no_recent_reservations": "No recent reservations.",
         "dashboard_info_alert": "This is your dashboard page. You can manage customers and stores using the sidebar navigation."
     },
     "sidebar": {
         "dashboard": "Dashboard",
         "customers": "Customers",
         "stores": "Stores",
+        "reservations": "Reservations",
         "users": "Users",
         "profile": "Profile",
         "settings": "Settings",
@@ -84,7 +86,20 @@
         "user_deleted_success": "User deleted successfully.",
         "user_delete_failed": "Failed to delete user.",
         "cannot_delete_self": "You cannot delete your own account.",
-        "permission_denied": "You do not have permission to access this page."
+        "permission_denied": "You do not have permission to access this page.",
+        "reservation_not_found": "Reservation not found.",
+        "reservation_all_fields_required": "Customer, Store, and Reservation Datetime are required.",
+        "reservation_date_invalid": "Invalid reservation datetime format.",
+        "reservation_added_success": "Reservation added successfully!",
+        "reservation_added_success_redirect": "Reservation ID {reservation_id} added successfully! Redirecting to details...",
+        "reservation_add_failed": "Failed to add reservation.",
+        "reservation_add_failed_generic": "Failed to add reservation: {error}",
+        "reservation_updated_success": "Reservation updated successfully!",
+        "reservation_update_failed": "Failed to update reservation.",
+        "reservation_update_failed_generic": "Failed to update reservation: {error}",
+        "reservation_deleted_success": "Reservation deleted successfully.",
+        "reservation_delete_failed": "Failed to delete reservation.",
+        "reservation_guests_invalid": "Number of guests must be a valid integer."
     },
     "common": {
         "id": "ID",
@@ -120,7 +135,8 @@
         "whatsapp": "WhatsApp",
         "clear_search": "Clear Search",
         "sorted_ascending": "Sorted Ascending",
-        "sorted_descending": "Sorted Descending"
+        "sorted_descending": "Sorted Descending",
+        "select_placeholder": "Select a {entity_name}"
     },
     "profile": {
         "title": "User Profile",
@@ -186,5 +202,26 @@
         "Operator": "Operator",
         "Contributor": "Contributor",
         "Guest": "Guest"
+    },
+    "reservations": {
+        "management_title": "Reservations Management",
+        "reservation_datetime": "Datetime",
+        "reservation_status": "Status",
+        "reservation_notes": "Notes",
+        "add_modal_title": "Add New Reservation",
+        "edit_modal_title": "Edit Reservation",
+        "detail_title": "Reservation Details",
+        "reservation_information": "Reservation Information",
+        "search_customer_placeholder": "Search customer by name or code...",
+        "reservation_event": "Event",
+        "reservation_room": "Room",
+        "reservation_guests": "Number of Guests",
+        "reservation_code": "Reservation Code"
+    },
+    "reservation_statuses": {
+        "Pending": "Pending",
+        "Confirmed": "Confirmed",
+        "Cancelled": "Cancelled",
+        "Completed": "Completed"
     }
 }

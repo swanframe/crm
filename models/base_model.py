@@ -123,7 +123,7 @@ class BaseModel:
         return [cls(**row) for row in results] if results else []
 
     @classmethod
-    def get_paginated_data(cls, page, per_page, search_query=None, search_columns=None, sort_by=None, sort_order='asc'):
+    def get_paginated_data(cls, page, per_page, search_query=None, search_columns=None, sort_by=None, sort_order='asc', join_tables=None, join_columns_for_search=None):
         """
         Mengambil data dengan pagination, pencarian, dan penyortiran.
         Args:
@@ -133,6 +133,9 @@ class BaseModel:
             search_columns (list, optional): Daftar kolom yang akan dicari. Defaults to None.
             sort_by (str, optional): Nama kolom untuk menyortir. Defaults to None.
             sort_order (str, optional): Arah penyortiran ('asc' atau 'desc'). Defaults to 'asc'.
+            join_tables (list, optional): Daftar klausa JOIN (misal: ['JOIN other_table ot ON t.id = ot.fk_id']). Defaults to None.
+            join_columns_for_search (dict, optional): Kamus untuk memetakan alias kolom ke nama kolom asli di tabel JOIN.
+                                                      Contoh: {'customer_name': 'c.customer_name'}. Defaults to None.
         Returns:
             list: Daftar objek model.
         """
@@ -140,28 +143,39 @@ class BaseModel:
             raise NotImplementedError("Table name not set for this model.")
 
         offset = (page - 1) * per_page
-        query_parts = [f"SELECT * FROM {cls._table_name}"]
+        
+        # Gunakan alias 't' untuk tabel utama
+        select_clause = f"SELECT t.*"
+        from_clause = f"FROM {cls._table_name} t"
+        
+        # Tambahkan JOIN clauses
+        if join_tables:
+            from_clause += " " + " ".join(join_tables)
+
+        query_parts = [select_clause, from_clause]
         params = []
 
+        where_conditions = []
         if search_query and search_columns:
-            search_conditions = []
             for col in search_columns:
-                search_conditions.append(f"{col} ILIKE %s") # ILIKE untuk case-insensitive
+                # Jika kolom ada di join_columns_for_search, gunakan nama kolom yang di-map
+                actual_col = join_columns_for_search.get(col, f"t.{col}") if join_columns_for_search else f"t.{col}"
+                where_conditions.append(f"{actual_col} ILIKE %s") # ILIKE untuk case-insensitive
                 params.append(f"%{search_query}%")
-            query_parts.append(f"WHERE {' OR '.join(search_conditions)}")
+            if where_conditions:
+                query_parts.append(f"WHERE {' OR '.join(where_conditions)}")
         
         # Tambahkan ORDER BY clause
         order_clause = ""
         if sort_by:
-            # Pastikan sort_by adalah kolom yang valid untuk menghindari SQL injection
-            # Untuk demo ini, kita asumsikan sort_by adalah nama kolom yang aman
-            # Dalam produksi, Anda harus memvalidasi ini terhadap daftar kolom yang diizinkan
+            # Jika sort_by adalah kolom dari tabel yang di-JOIN, gunakan nama kolom yang di-map
+            actual_sort_by = join_columns_for_search.get(sort_by, f"t.{sort_by}") if join_columns_for_search else f"t.{sort_by}"
             if sort_order.lower() not in ['asc', 'desc']:
                 sort_order = 'asc' # Default ke asc jika order tidak valid
-            order_clause = f"ORDER BY {sort_by} {sort_order.upper()}"
+            order_clause = f"ORDER BY {actual_sort_by} {sort_order.upper()}"
         else:
             # Default sort jika tidak ada sort_by yang diberikan
-            order_clause = f"ORDER BY {cls._primary_key} ASC"
+            order_clause = f"ORDER BY t.{cls._primary_key} ASC"
 
         query_parts.append(order_clause)
         query_parts.append(f"LIMIT %s OFFSET %s")
@@ -175,27 +189,35 @@ class BaseModel:
         return [cls(**row) for row in results] if results else []
 
     @classmethod
-    def count_all(cls, search_query=None, search_columns=None):
+    def count_all(cls, search_query=None, search_columns=None, join_tables=None, join_columns_for_search=None):
         """
         Menghitung total jumlah record, dengan opsi pencarian.
         Args:
             search_query (str, optional): String pencarian. Defaults to None.
             search_columns (list, optional): Daftar kolom yang akan dicari. Defaults to None.
+            join_tables (list, optional): Daftar klausa JOIN. Defaults to None.
+            join_columns_for_search (dict, optional): Kamus untuk memetakan alias kolom ke nama kolom asli di tabel JOIN.
         Returns:
             int: Total jumlah record.
         """
         if not cls._table_name:
             raise NotImplementedError("Table name not set for this model.")
         
-        query_parts = [f"SELECT COUNT(*) FROM {cls._table_name}"]
+        from_clause = f"FROM {cls._table_name} t"
+        if join_tables:
+            from_clause += " " + " ".join(join_tables)
+
+        query_parts = [f"SELECT COUNT(*) {from_clause}"]
         params = []
 
+        where_conditions = []
         if search_query and search_columns:
-            search_conditions = []
             for col in search_columns:
-                search_conditions.append(f"{col} ILIKE %s")
+                actual_col = join_columns_for_search.get(col, f"t.{col}") if join_columns_for_search else f"t.{col}"
+                where_conditions.append(f"{actual_col} ILIKE %s")
                 params.append(f"%{search_query}%")
-            query_parts.append(f"WHERE {' OR '.join(search_conditions)}")
+            if where_conditions:
+                query_parts.append(f"WHERE {' OR '.join(where_conditions)}")
         
         query = " ".join(query_parts)
         result = cls._execute_query(query, tuple(params), fetch_one=True)

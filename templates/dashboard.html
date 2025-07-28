@@ -38,6 +38,14 @@
                 </a>
             </li>
             {% endif %}
+            {# NEW: Reservations module visibility: Admin, Operator, Contributor #}
+            {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint == 'list_reservations' %}active{% endif %}" href="{{ url_for('list_reservations') }}">
+                    <i class="bi bi-calendar-check me-2"></i> {{ _('sidebar.reservations') }}
+                </a>
+            </li>
+            {% endif %}
             {# Users module visibility: Admin only #}
             {% if g.user.user_level == 'Admin' %}
             <li class="nav-item mb-1">
@@ -56,7 +64,7 @@
                     <i class="bi bi-gear me-2"></i> {{ _('sidebar.settings') }}
                 </a>
             </li>
-            <!-- Tambahkan menu lain di sini jika diperlukan -->
+            <!-- Add other menus here if needed -->
         </ul>
         
         <div class="mt-auto pt-3 border-top">
@@ -86,7 +94,7 @@
                 </div>
                 
                 <div class="d-flex align-items-center ms-auto">
-                    {# Dropdown Pemilihan Bahasa #}
+                    {# Language selection dropdown #}
                     <div class="dropdown me-3">
                         <select class="form-select form-select-sm" id="language-select" aria-label="Language selector">
                             {% for lang_code in supported_languages %}
@@ -112,12 +120,12 @@
             </div>
         </nav>
         
-        <!-- Main Content (Konten spesifik halaman) -->
+        <!-- Main Content (Page specific content) -->
         <div class="container-fluid p-4">
             {% block page_content %}
             <!-- Stats Cards -->
             <div class="row mb-4">
-                <div class="col-md-4 col-sm-12 mb-3"> {# Changed to col-md-4 for 3 columns #}
+                <div class="col-md-3 col-sm-12 mb-3"> {# Changed to col-md-3 for 4 columns #}
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -133,7 +141,7 @@
                     </div>
                 </div>
                 
-                <div class="col-md-4 col-sm-12 mb-3"> {# Changed to col-md-4 #}
+                <div class="col-md-3 col-sm-12 mb-3"> {# Changed to col-md-3 #}
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -149,7 +157,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 col-sm-12 mb-3"> {# New: Total Users Card #}
+                <div class="col-md-3 col-sm-12 mb-3"> {# Total Users Card #}
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -164,9 +172,25 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="col-md-3 col-sm-12 mb-3"> {# NEW: Total Reservations Card #}
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_reservations_card') }}</h6>
+                                    <h4 class="fw-bold mb-0">{{ total_reservations }}</h4>
+                                </div>
+                                <div class="stat-card-icon bg-warning bg-opacity-10 text-warning">
+                                    <i class="bi bi-calendar-check"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <!-- Recent Customers & Stores -->
+            <!-- Recent Customers, Stores & Reservations -->
             <div class="row mb-4">
                 <div class="col-md-6 mb-4">
                     <div class="card dashboard-card h-100">
@@ -245,6 +269,58 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="col-md-12 mb-4"> {# NEW: Recent Reservations Section #}
+                    <div class="card dashboard-card h-100">
+                        <div class="card-header bg-white border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ _('dashboard.recent_reservations_section') }}</h5>
+                                <a href="{{ url_for('list_reservations') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-container">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>{{ _('common.id') }}</th>
+                                                <th>{{ _('customers.customer_name') }}</th>
+                                                <th>{{ _('stores.store_name') }}</th>
+                                                <th>{{ _('reservations.reservation_datetime') }}</th>
+                                                <th>{{ _('reservations.reservation_status') }}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for reservation in recent_reservations %}
+                                            <tr>
+                                                <td>{{ reservation.reservation_id }}</td>
+                                                <td>{{ reservation.get_customer_name() }}</td>
+                                                <td>{{ reservation.get_store_name() }}</td>
+                                                <td>{{ reservation.reservation_datetime.strftime('%Y-%m-%d %H:%M') if reservation.reservation_datetime else _('common.not_available_short') }}</td>
+                                                <td>
+                                                    <span class="badge bg-{{ {
+                                                        'Pending': 'warning',
+                                                        'Confirmed': 'success',
+                                                        'Cancelled': 'danger',
+                                                        'Completed': 'info'
+                                                    }[reservation.reservation_status] | default('secondary') }}">
+                                                        {{ _('reservation_statuses.' + reservation.reservation_status) }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                            {% else %}
+                                            <tr>
+                                                <td colspan="5" class="text-center">{{ _('dashboard.no_recent_reservations') }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="alert alert-info" role="alert">
                 {{ _('dashboard.dashboard_info_alert') }}
@@ -255,7 +331,7 @@
 </div>
 
 <style>
-    /* CSS dari referensi frontend yang disesuaikan */
+    /* CSS from frontend reference adjusted */
     :root {
         --sidebar-width: 250px;
         --header-height: 60px;
@@ -364,7 +440,7 @@
         const mobileSidebarToggle = document.getElementById('mobileSidebarToggle');
         const sidebar = document.getElementById('sidebar');
         const contentArea = document.getElementById('contentArea');
-        const sidebarToggle = document.getElementById('sidebarToggle'); // Untuk tombol X di sidebar
+        const sidebarToggle = document.getElementById('sidebarToggle'); // For the X button in sidebar
 
         if (mobileSidebarToggle) {
             mobileSidebarToggle.addEventListener('click', function() {
