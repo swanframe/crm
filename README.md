@@ -1,6 +1,6 @@
 # CRM System
 
-A simple Customer Relationship Management (CRM) system built with Flask and PostgreSQL. This project allows users to manage customers, stores, and user accounts with role-based access control, multi-language support, and a many-to-many relationship between stores and customers.
+A simple Customer Relationship Management (CRM) system built with Flask and PostgreSQL. This project allows users to manage customers, stores, user accounts, and now includes a reservation management module. It features role-based access control, multi-language support, and a many-to-many relationship between stores and customers.
 
 ## Table of Contents
 
@@ -21,6 +21,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Role-Based Access Control**: Supports roles like Admin, Operator, Contributor, and Guest with different permissions.
 - **Customer Management**: Add, edit, delete customers with pagination, search, and sorting capabilities.
 - **Store Management**: Add, edit, delete stores with pagination, search, and sorting capabilities.
+- **Reservation Management**: Add, edit, delete reservations with pagination, search, and sorting capabilities. Includes customer and store associations.
 - **Many-to-Many Relationship**: Manage associations between stores and customers.
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
@@ -42,7 +43,8 @@ crm/
 │   ├── user.py             # User model
 │   ├── store.py            # Store model
 │   ├── customer.py         # Customer model
-│   └── store_customer.py   # Many-to-many relation model for stores and customers
+│   ├── store_customer.py   # Many-to-many relation model for stores and customers
+│   └── reservation.py      # Reservation model
 ├── templates/
 │   ├── base.html           # Base template for all pages
 │   ├── login.html          # Login and registration page
@@ -56,7 +58,9 @@ crm/
 │   ├── profile.html        # User profile page
 │   ├── settings.html       # User settings page
 │   ├── users.html          # User management page
-│   └── user_detail.html    # User detail page
+│   ├── user_detail.html    # User detail page
+│   ├── reservations.html   # Reservation management page
+│   └── reservation_detail.html # Reservation detail page
 ├── utilities/
 │   ├── security.py         # Password hashing utilities
 │   └── localization.py     # Multi-language translation utilities
@@ -102,6 +106,7 @@ To set up the project locally, follow these steps:
 - **Dashboard**: After login, users are redirected to `/dashboard` for an overview.
 - **Manage Customers**: Go to `/customers` to perform CRUD operations on customers (requires Admin, Operator, or Contributor role).
 - **Manage Stores**: Go to `/stores` to perform CRUD operations on stores (requires Admin, Operator, or Contributor role).
+- **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role).
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
 
@@ -170,6 +175,23 @@ Configuration is managed through `config.py` and environment variables:
          customer_id INTEGER REFERENCES customers(customer_id) ON DELETE CASCADE,
          PRIMARY KEY (store_id, customer_id)
      );
+
+     CREATE TABLE reservations (
+         reservation_id SERIAL PRIMARY KEY,
+         customer_id INTEGER REFERENCES customers(customer_id) ON DELETE CASCADE,
+         store_id INTEGER REFERENCES stores(store_id) ON DELETE CASCADE,
+         reservation_datetime TIMESTAMP NOT NULL,
+         reservation_status VARCHAR(20) DEFAULT 'Pending',
+         reservation_notes TEXT,
+         reservation_event VARCHAR(100),
+         reservation_room VARCHAR(50),
+         reservation_guests INTEGER,
+         reservation_code VARCHAR(20) UNIQUE,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         created_by INTEGER REFERENCES users(id),
+         updated_by INTEGER REFERENCES users(id)
+     );
      ```
 4. **Create Initial Admin User**:
    - Since users registered via `/register` get the Guest role by default, you need to create an Admin user manually to access full functionality. First, generate a password hash using the following Python script:
@@ -207,8 +229,9 @@ The app will be accessible at `http://localhost:5000`.
 
 Currently, there are no automated tests. You can manually test the application by:
 - Logging in and out.
-- Performing CRUD operations on customers, stores, and users (Admin role required for some actions).
+- Performing CRUD operations on customers, stores, reservations, and users (Admin role required for some actions).
 - Associating customers with stores and vice versa.
+- Creating, editing, and deleting reservations.
 
 ## License
 
