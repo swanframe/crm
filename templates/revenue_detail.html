@@ -1,0 +1,470 @@
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('revenues.detail_title') }} - ID {{ revenue.revenue_id }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('revenues.detail_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('revenues.detail_title') }}: ID {{ revenue.revenue_id }}</h1>
+    <div>
+        <a href="{{ url_for('list_revenues') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('sidebar.revenues')) }}
+        </a>
+        <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editRevenueModal"
+                data-revenue-id="{{ revenue.revenue_id }}"
+                data-store-id="{{ revenue.store_id }}"
+                data-revenue-date="{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else '' }}"
+                data-revenue-guests="{{ revenue.revenue_guests if revenue.revenue_guests is not none else '' }}"
+                data-revenue-notes="{{ revenue.revenue_notes if revenue.revenue_notes else '' }}"
+                data-store-name="{{ store_details.store_name if store_details else '' }}"> {# Pass store name for display #}
+            <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
+        </button>
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteRevenueModal"
+                data-revenue-id="{{ revenue.revenue_id }}"
+                data-store-name="{{ store_details.store_name if store_details else '' }}">
+            <i class="bi bi-trash me-1"></i>{{ _('common.delete') }}
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Revenue Details & Summary -->
+    <div class="col-lg-5 mb-4">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">{{ _('revenues.revenue_information') }}</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">{{ _('common.id') }}</dt>
+                    <dd class="col-sm-8">{{ revenue.revenue_id }}</dd>
+
+                    <dt class="col-sm-4">{{ _('stores.store_name') }}</dt>
+                    <dd class="col-sm-8">{{ store_details.store_name if store_details else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">{{ _('revenues.revenue_date') }}</dt>
+                    <dd class="col-sm-8">{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">{{ _('revenues.guests') }}</dt>
+                    <dd class="col-sm-8">{{ revenue.revenue_guests if revenue.revenue_guests is not none else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">{{ _('revenues.notes') }}</dt>
+                    <dd class="col-sm-8">{{ revenue.revenue_notes if revenue.revenue_notes else 'N/A' }}</dd>
+
+                    <dt class="col-sm-4">{{ _('common.created_by') }}</dt>
+                    <dd class="col-sm-8">{{ created_by_username }}</dd>
+
+                    <dt class="col-sm-4">{{ _('common.updated_by') }}</dt>
+                    <dd class="col-sm-8">{{ updated_by_username }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">{{ _('revenues.summary') }}</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ _('revenues.total_additions') }}
+                        <span class="badge bg-success rounded-pill fs-6">{{ "Rp {:,.2f}".format(total_revenue_additions) }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        {{ _('revenues.total_deductions') }}
+                        <span class="badge bg-danger rounded-pill fs-6">{{ "Rp {:,.2f}".format(total_revenue_deductions) }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
+                        {{ _('revenues.net_revenue') }}
+                        <span class="badge bg-primary rounded-pill fs-5">{{ "Rp {:,.2f}".format(net_revenue) }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue Items (Additions & Deductions) -->
+    <div class="col-lg-7 mb-4">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ _('revenues.revenue_items') }}</h5>
+                <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addRevenueItemModal">
+                    <i class="bi bi-plus-circle me-1"></i>{{ _('revenues.add_item_button') }}
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('revenue_types.name') }}</th>
+                                <th>{{ _('revenues.amount') }}</th>
+                                <th>{{ _('revenues.notes') }}</th>
+                                <th>{{ _('common.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in revenue_items %}
+                            <tr>
+                                <td>
+                                    {{ item.get_revenue_type_name() }}
+                                    {% if item.get_revenue_type_category() == 'Addition' %}
+                                        <span class="badge bg-success-light text-success ms-1">{{ _('revenue_types.category_addition') }}</span>
+                                    {% else %}
+                                        <span class="badge bg-danger-light text-danger ms-1">{{ _('revenue_types.category_deduction') }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "Rp {:,.2f}".format(item.revenue_item_amount) }}</td>
+                                <td>{{ item.revenue_item_notes if item.revenue_item_notes else '-' }}</td>
+                                <td>
+                                    <form action="{{ url_for('delete_revenue_item', revenue_id=revenue.revenue_id, revenue_item_id=item.revenue_item_id) }}" method="POST" onsubmit="return confirm('{{ _('common.are_you_sure_delete', entity_name=_('revenues.revenue_item')) }}');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4">{{ _('revenues.no_items') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compliments Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">{{ _('revenues.compliments') }}</h5>
+                <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#addComplimentModal">
+                    <i class="bi bi-gift me-1"></i>{{ _('revenues.add_compliment_button') }}
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>{{ _('revenues.compliment_description') }}</th>
+                                <th>{{ _('revenues.compliment_for') }}</th>
+                                <th>{{ _('revenues.notes') }}</th>
+                                <th>{{ _('common.created_by') }}</th>
+                                <th>{{ _('common.actions') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for comp in revenue_compliments %}
+                            <tr>
+                                <td>{{ comp.revenue_compliment_description }}</td>
+                                <td>{{ comp.revenue_compliment_for if comp.revenue_compliment_for else '-' }}</td>
+                                <td>{{ comp.revenue_compliment_notes if comp.revenue_compliment_notes else '-' }}</td>
+                                <td>{{ user_map.get(comp.created_by, 'N/A') }}</td>
+                                <td>
+                                    <form action="{{ url_for('delete_revenue_compliment', revenue_id=revenue.revenue_id, revenue_compliment_id=comp.revenue_compliment_id) }}" method="POST" onsubmit="return confirm('{{ _('common.are_you_sure_delete', entity_name=_('revenues.compliment')) }}');">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">{{ _('revenues.no_compliments') }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Edit Revenue Modal -->
+<div class="modal fade" id="editRevenueModal" tabindex="-1" aria-labelledby="editRevenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="editRevenueForm" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editRevenueModalLabel">{{ _('revenues.edit_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="edit_revenue_id" name="revenue_id">
+                    <div class="mb-3">
+                        <label for="edit_store_search" class="form-label">{{ _('stores.store_name') }}</label>
+                        <input type="text" class="form-control" id="edit_store_search" 
+                               placeholder="{{ _('revenues.search_store_placeholder') }}" autocomplete="off" required>
+                        <input type="hidden" id="edit_store_id_hidden" name="store_id" required>
+                        <div id="edit_store_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_revenue_date" class="form-label">{{ _('revenues.revenue_date') }}</label>
+                        <input type="date" class="form-control" id="edit_revenue_date" name="revenue_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_revenue_guests" class="form-label">{{ _('revenues.guests') }}</label>
+                        <input type="number" class="form-control" id="edit_revenue_guests" name="revenue_guests" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_revenue_notes" class="form-label">{{ _('revenues.notes') }}</label>
+                        <textarea class="form-control" id="edit_revenue_notes" name="revenue_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('common.save_changes_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Revenue Modal -->
+<div class="modal fade" id="deleteRevenueModal" tabindex="-1" aria-labelledby="deleteRevenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteRevenueModalLabel">{{ _('common.delete') }} {{ _('sidebar.revenues') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+            </div>
+            <div class="modal-body">
+                {{ _('common.are_you_sure_delete', entity_name=_('sidebar.revenues')) }} <span id="delete_revenue_id_placeholder" class="fw-bold"></span> ({{ _('stores.store_name') }}: <span id="delete_store_name_placeholder" class="fw-bold"></span>)?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                <form id="deleteRevenueForm" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger">{{ _('common.delete') }}</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Revenue Item Modal -->
+<div class="modal fade" id="addRevenueItemModal" tabindex="-1" aria-labelledby="addRevenueItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('add_revenue_item', revenue_id=revenue.revenue_id) }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRevenueItemModalLabel">{{ _('revenues.add_item_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="revenue_type_id" class="form-label">{{ _('revenue_types.name') }}</label>
+                        <select class="form-select" id="revenue_type_id" name="revenue_type_id" required>
+                            <option value="" disabled selected>{{ _('common.select_placeholder', entity_name=_('revenue_types.name')) }}</option>
+                            {% for rt in all_revenue_types %}
+                            <option value="{{ rt.revenue_type_id }}">{{ rt.revenue_type_name }} ({{ _('revenue_types.category_' + rt.revenue_type_category.lower()) }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_item_amount" class="form-label">{{ _('revenues.amount') }}</label>
+                        <input type="number" step="0.01" class="form-control" id="revenue_item_amount" name="revenue_item_amount" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_item_notes" class="form-label">{{ _('revenues.notes') }}</label>
+                        <textarea class="form-control" id="revenue_item_notes" name="revenue_item_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('revenues.add_item_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Compliment Modal -->
+<div class="modal fade" id="addComplimentModal" tabindex="-1" aria-labelledby="addComplimentModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('add_revenue_compliment', revenue_id=revenue.revenue_id) }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addComplimentModalLabel">{{ _('revenues.add_compliment_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="revenue_compliment_description" class="form-label">{{ _('revenues.compliment_description') }}</label>
+                        <input type="text" class="form-control" id="revenue_compliment_description" name="revenue_compliment_description" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_compliment_for" class="form-label">{{ _('revenues.compliment_for') }}</label>
+                        <input type="text" class="form-control" id="revenue_compliment_for" name="revenue_compliment_for">
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_compliment_notes" class="form-label">{{ _('revenues.notes') }}</label>
+                        <textarea class="form-control" id="revenue_compliment_notes" name="revenue_compliment_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('revenues.add_compliment_button') }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .badge.bg-success-light {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+    .badge.bg-danger-light {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+</style>
+
+<script>
+    // Utility function for debouncing
+    function debounce(func, delay) {
+        let timeout;
+        return function(...args) {
+            const context = this;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), delay);
+        };
+    }
+
+    // Function to handle store search and populate suggestions
+    function setupStoreSearch(searchInputId, hiddenInputId, suggestionsDivId) {
+        const searchInput = document.getElementById(searchInputId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const suggestionsDiv = document.getElementById(suggestionsDivId);
+
+        if (!searchInput || !hiddenInput || !suggestionsDiv) {
+            console.error('One or more elements not found for store search setup:', { searchInputId, hiddenInputId, suggestionsDivId });
+            return;
+        }
+
+        const fetchStores = debounce(async (query) => {
+            if (query.length < 1) {
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/stores/search?q=${encodeURIComponent(query)}`);
+                const stores = await response.json();
+                
+                suggestionsDiv.innerHTML = '';
+                if (stores.length > 0) {
+                    stores.forEach(store => {
+                        const item = document.createElement('a');
+                        item.href = '#';
+                        item.classList.add('list-group-item', 'list-group-item-action');
+                        item.textContent = store.name;
+                        item.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            searchInput.value = store.name;
+                            hiddenInput.value = store.id;
+                            suggestionsDiv.innerHTML = '';
+                            suggestionsDiv.style.display = 'none';
+                        });
+                        suggestionsDiv.appendChild(item);
+                    });
+                    suggestionsDiv.style.display = 'block';
+                } else {
+                    suggestionsDiv.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error fetching stores:', error);
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.style.display = 'none';
+            }
+        }, 300);
+
+        searchInput.addEventListener('input', (e) => {
+            fetchStores(e.target.value);
+            // Clear hidden ID if text input changes (user might be typing a new store)
+            if (hiddenInput.value && searchInput.value !== (searchInput.dataset.selectedStoreName || '')) {
+                hiddenInput.value = '';
+            }
+        });
+
+        // Hide suggestions when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.style.display = 'none';
+            }
+        });
+
+        // When the modal is hidden, clear the search input and hidden ID
+        const modal = searchInput.closest('.modal');
+        if (modal) {
+            modal.addEventListener('hidden.bs.modal', () => {
+                searchInput.value = '';
+                hiddenInput.value = '';
+                suggestionsDiv.innerHTML = '';
+                suggestionsDiv.style.display = 'none';
+                delete searchInput.dataset.selectedStoreName; // Clear stored name
+            });
+        }
+    }
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Setup for Edit Revenue Modal
+        setupStoreSearch('edit_store_search', 'edit_store_id_hidden', 'edit_store_suggestions');
+
+        var editRevenueModal = document.getElementById('editRevenueModal');
+        editRevenueModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget; // Button that triggered the modal
+            var revenueId = button.getAttribute('data-revenue-id');
+            var storeId = button.getAttribute('data-store-id');
+            var revenueDate = button.getAttribute('data-revenue-date');
+            var revenueGuests = button.getAttribute('data-revenue-guests');
+            var revenueNotes = button.getAttribute('data-revenue-notes');
+            var storeName = button.getAttribute('data-store-name');
+
+            var modalTitle = editRevenueModal.querySelector('.modal-title');
+            var modalBodyInputId = editRevenueModal.querySelector('#edit_revenue_id');
+            var modalBodyInputStoreSearch = editRevenueModal.querySelector('#edit_store_search');
+            var modalBodyInputStoreIdHidden = editRevenueModal.querySelector('#edit_store_id_hidden');
+            var modalBodyInputDate = editRevenueModal.querySelector('#edit_revenue_date');
+            var modalBodyInputGuests = editRevenueModal.querySelector('#edit_revenue_guests');
+            var modalBodyTextareaNotes = editRevenueModal.querySelector('#edit_revenue_notes');
+            var editForm = editRevenueModal.querySelector('#editRevenueForm');
+
+            modalTitle.textContent = "{{ _('revenues.edit_modal_title') }}: ID " + revenueId;
+            modalBodyInputId.value = revenueId;
+            
+            // Set the search input and hidden ID for store
+            modalBodyInputStoreSearch.value = storeName;
+            modalBodyInputStoreSearch.dataset.selectedStoreName = storeName; // Store original name
+            modalBodyInputStoreIdHidden.value = storeId;
+
+            modalBodyInputDate.value = revenueDate;
+            modalBodyInputGuests.value = revenueGuests;
+            modalBodyTextareaNotes.value = revenueNotes;
+            editForm.action = "{{ url_for('edit_revenue', revenue_id=0) }}".replace('0', revenueId);
+        });
+
+        // Script to populate data in the delete modal
+        var deleteRevenueModal = document.getElementById('deleteRevenueModal');
+        deleteRevenueModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var revenueId = button.getAttribute('data-revenue-id');
+            var storeName = button.getAttribute('data-store-name');
+            var deleteRevenueIdPlaceholder = deleteRevenueModal.querySelector('#delete_revenue_id_placeholder');
+            var deleteStoreNamePlaceholder = deleteRevenueModal.querySelector('#delete_store_name_placeholder');
+            var deleteForm = deleteRevenueModal.querySelector('#deleteRevenueForm');
+
+            deleteRevenueIdPlaceholder.textContent = revenueId;
+            deleteStoreNamePlaceholder.textContent = storeName;
+            deleteForm.action = "{{ url_for('delete_revenue', revenue_id=0) }}".replace('0', revenueId);
+        });
+    });
+</script>
+{% endblock %}

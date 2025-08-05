@@ -1,0 +1,187 @@
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('revenues.management_title') }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('revenues.management_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">{{ _('sidebar.revenues') }}</h1>
+    <div class="d-flex align-items-center">
+        <form class="d-flex me-3" method="GET" action="{{ url_for('list_revenues') }}">
+            <input class="form-control me-2" type="search" placeholder="{{ _('common.search_placeholder', entity_name=_('sidebar.revenues')) }}" aria-label="Search" name="search" value="{{ search_query if search_query }}">
+            <button class="btn btn-outline-success" type="submit"><i class="bi bi-search"></i></button>
+            <input type="hidden" name="sort_by" value="{{ sort_by }}">
+            <input type="hidden" name="sort_order" value="{{ sort_order }}">
+        </form>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRevenueModal">
+            <i class="bi bi-plus-circle me-2"></i>{{ _('common.add_new', entity_name=_('sidebar.revenues')) }}
+        </button>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_id', sort_order='asc' if sort_by != 'revenue_id' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('common.id') }} {% if sort_by == 'revenue_id' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
+                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='store_name', sort_order='asc' if sort_by != 'store_name' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('stores.store_name') }} {% if sort_by == 'store_name' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
+                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_date', sort_order='asc' if sort_by != 'revenue_date' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('revenues.revenue_date') }} {% if sort_by == 'revenue_date' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
+                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_guests', sort_order='asc' if sort_by != 'revenue_guests' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('revenues.guests') }} {% if sort_by == 'revenue_guests' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
+                        <th>{{ _('common.actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for revenue in revenues %}
+                    <tr>
+                        <td>{{ revenue.revenue_id }}</td>
+                        <td>{{ revenue.get_store_name() }}</td>
+                        <td>{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else _('common.not_available_short') }}</td>
+                        <td>{{ revenue.revenue_guests if revenue.revenue_guests is not none else _('common.not_available_short') }}</td>
+                        <td>
+                            <a href="{{ url_for('view_revenue_detail', revenue_id=revenue.revenue_id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-eye"></i> {{ _('common.view') }}
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center">{{ _('common.no_records_found', entity_name=_('sidebar.revenues')) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+{% if total_pages > 1 %}
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center">
+        <!-- Pagination links here, similar to other pages -->
+    </ul>
+</nav>
+{% endif %}
+
+
+<!-- Add Revenue Modal -->
+<div class="modal fade" id="addRevenueModal" tabindex="-1" aria-labelledby="addRevenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="{{ url_for('add_revenue') }}" method="POST">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addRevenueModalLabel">{{ _('revenues.add_modal_title') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('common.close_button') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="add_store_search" class="form-label">{{ _('stores.store_name') }}</label>
+                        <input type="text" class="form-control" id="add_store_search" placeholder="{{ _('revenues.search_store_placeholder') }}" autocomplete="off" required>
+                        <input type="hidden" id="add_store_id_hidden" name="store_id" required>
+                        <div id="add_store_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_date" class="form-label">{{ _('revenues.revenue_date') }}</label>
+                        <input type="date" class="form-control" id="revenue_date" name="revenue_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_guests" class="form-label">{{ _('revenues.guests') }}</label>
+                        <input type="number" class="form-control" id="revenue_guests" name="revenue_guests" min="0">
+                    </div>
+                    <div class="mb-3">
+                        <label for="revenue_notes" class="form-label">{{ _('revenues.notes') }}</label>
+                        <textarea class="form-control" id="revenue_notes" name="revenue_notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
+                    <button type="submit" class="btn btn-primary">{{ _('common.add_new', entity_name=_('sidebar.revenues')) }}</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Utility function for debouncing
+function debounce(func, delay) {
+    let timeout;
+    return function(...args) {
+        const context = this;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(context, args), delay);
+    };
+}
+
+// Function to handle store search and populate suggestions
+function setupStoreSearch(searchInputId, hiddenInputId, suggestionsDivId) {
+    const searchInput = document.getElementById(searchInputId);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    const suggestionsDiv = document.getElementById(suggestionsDivId);
+
+    if (!searchInput || !hiddenInput || !suggestionsDiv) {
+        console.error('One or more elements not found for store search setup:', { searchInputId, hiddenInputId, suggestionsDivId });
+        return;
+    }
+
+    const fetchStores = debounce(async (query) => {
+        if (query.length < 1) {
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/stores/search?q=${encodeURIComponent(query)}`);
+            const stores = await response.json();
+            
+            suggestionsDiv.innerHTML = '';
+            if (stores.length > 0) {
+                stores.forEach(store => {
+                    const item = document.createElement('a');
+                    item.href = '#';
+                    item.classList.add('list-group-item', 'list-group-item-action');
+                    item.textContent = store.name;
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        searchInput.value = store.name;
+                        hiddenInput.value = store.id;
+                        suggestionsDiv.innerHTML = '';
+                        suggestionsDiv.style.display = 'none';
+                    });
+                    suggestionsDiv.appendChild(item);
+                });
+                suggestionsDiv.style.display = 'block';
+            } else {
+                suggestionsDiv.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error fetching stores:', error);
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.style.display = 'none';
+        }
+    }, 300);
+
+    searchInput.addEventListener('input', (e) => {
+        fetchStores(e.target.value);
+        if (hiddenInput.value) {
+            hiddenInput.value = '';
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+            suggestionsDiv.innerHTML = '';
+            suggestionsDiv.style.display = 'none';
+        }
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setupStoreSearch('add_store_search', 'add_store_id_hidden', 'add_store_suggestions');
+});
+</script>
+{% endblock %}

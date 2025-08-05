@@ -38,12 +38,33 @@
                 </a>
             </li>
             {% endif %}
-            {# NEW: Reservations module visibility: Admin, Operator, Contributor #}
+            {# Reservations module visibility: Admin, Operator, Contributor #}
             {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
             <li class="nav-item mb-1">
                 <a class="nav-link {% if request.endpoint == 'list_reservations' %}active{% endif %}" href="{{ url_for('list_reservations') }}">
                     <i class="bi bi-calendar-check me-2"></i> {{ _('sidebar.reservations') }}
                 </a>
+            </li>
+            {% endif %}
+            {# NEW: Revenues module visibility: Admin, Operator, Contributor #}
+            {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.endpoint in ['list_revenues', 'list_revenue_types'] %}active{% endif %}" data-bs-toggle="collapse" href="#revenueSubmenu" role="button" aria-expanded="false" aria-controls="revenueSubmenu">
+                    <i class="bi bi-cash-stack me-2"></i> {{ _('sidebar.revenues_main') }}
+                </a>
+                <div class="collapse {% if request.endpoint in ['list_revenues', 'list_revenue_types'] %}show{% endif %}" id="revenueSubmenu">
+                    <ul class="nav flex-column ps-3">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'list_revenues' %}active{% endif %}" href="{{ url_for('list_revenues') }}">{{ _('sidebar.revenues') }}</a>
+                        </li>
+                        {# Revenue Types visibility: Admin, Operator #}
+                        {% if g.user.user_level in ['Admin', 'Operator'] %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'list_revenue_types' %}active{% endif %}" href="{{ url_for('list_revenue_types') }}">{{ _('sidebar.revenue_types') }}</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
             </li>
             {% endif %}
             {# Users module visibility: Admin only #}
@@ -64,7 +85,6 @@
                     <i class="bi bi-gear me-2"></i> {{ _('sidebar.settings') }}
                 </a>
             </li>
-            <!-- Add other menus here if needed -->
         </ul>
         
         <div class="mt-auto pt-3 border-top">
@@ -75,7 +95,7 @@
                 <div>
                     <div class="fw-bold small">{{ g.user.username }}</div>
                     <div class="text-muted small">{{ g.user.email }}</div>
-                    <div class="text-muted small">Level: {{ _('user_levels.' + g.user.user_level) }}</div> {# Display user level #}
+                    <div class="text-muted small">Level: {{ _('user_levels.' + g.user.user_level) }}</div>
                 </div>
             </div>
         </div>
@@ -94,7 +114,6 @@
                 </div>
                 
                 <div class="d-flex align-items-center ms-auto">
-                    {# Language selection dropdown #}
                     <div class="dropdown me-3">
                         <select class="form-select form-select-sm" id="language-select" aria-label="Language selector">
                             {% for lang_code in supported_languages %}
@@ -125,7 +144,7 @@
             {% block page_content %}
             <!-- Stats Cards -->
             <div class="row mb-4">
-                <div class="col-md-3 col-sm-12 mb-3"> {# Changed to col-md-3 for 4 columns #}
+                <div class="col-xl col-md-6 mb-3">
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -141,7 +160,7 @@
                     </div>
                 </div>
                 
-                <div class="col-md-3 col-sm-12 mb-3"> {# Changed to col-md-3 #}
+                <div class="col-xl col-md-6 mb-3">
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -157,23 +176,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 col-sm-12 mb-3"> {# Total Users Card #}
-                    <div class="card dashboard-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_users_card') }}</h6>
-                                    <h4 class="fw-bold mb-0">{{ total_users }}</h4>
-                                </div>
-                                <div class="stat-card-icon bg-info bg-opacity-10 text-info">
-                                    <i class="bi bi-person-lines-fill"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-3 col-sm-12 mb-3"> {# NEW: Total Reservations Card #}
+                <div class="col-xl col-md-6 mb-3">
                     <div class="card dashboard-card h-100">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
@@ -188,11 +191,43 @@
                         </div>
                     </div>
                 </div>
+
+                <div class="col-xl col-md-6 mb-3">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_revenues_card') }}</h6>
+                                    <h4 class="fw-bold mb-0">{{ total_revenues }}</h4>
+                                </div>
+                                <div class="stat-card-icon bg-danger bg-opacity-10 text-danger">
+                                    <i class="bi bi-cash-stack"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl col-md-6 mb-3">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_users_card') }}</h6>
+                                    <h4 class="fw-bold mb-0">{{ total_users }}</h4>
+                                </div>
+                                <div class="stat-card-icon bg-info bg-opacity-10 text-info">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <!-- Recent Customers, Stores & Reservations -->
+            <!-- Recent Activities -->
             <div class="row mb-4">
-                <div class="col-md-6 mb-4">
+                <div class="col-lg-6 mb-4">
                     <div class="card dashboard-card h-100">
                         <div class="card-header bg-white border-0">
                             <div class="d-flex justify-content-between align-items-center">
@@ -201,37 +236,33 @@
                             </div>
                         </div>
                         <div class="card-body p-0">
-                            <div class="table-container">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ _('common.id') }}</th>
-                                                <th>{{ _('customers.customer_name') }}</th>
-                                                <th>{{ _('common.created_by') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for customer in recent_customers %}
-                                            <tr>
-                                                <td>{{ customer.customer_id }}</td>
-                                                <td>{{ customer.customer_name }}</td>
-                                                <td>{{ user_map.get(customer.created_by, 'N/A') }}</td>
-                                            </tr>
-                                            {% else %}
-                                            <tr>
-                                                <td colspan="3" class="text-center">{{ _('dashboard.no_recent_customers') }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ _('customers.customer_name') }}</th>
+                                            <th>{{ _('common.created_by') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for customer in recent_customers %}
+                                        <tr>
+                                            <td>{{ customer.customer_name }}</td>
+                                            <td>{{ user_map.get(customer.created_by, 'N/A') }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="2" class="text-center">{{ _('dashboard.no_recent_customers') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
                 
-                <div class="col-md-6 mb-4">
+                <div class="col-lg-6 mb-4">
                     <div class="card dashboard-card h-100">
                         <div class="card-header bg-white border-0">
                             <div class="d-flex justify-content-between align-items-center">
@@ -240,37 +271,33 @@
                             </div>
                         </div>
                         <div class="card-body p-0">
-                            <div class="table-container">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ _('common.id') }}</th>
-                                                <th>{{ _('stores.store_name') }}</th>
-                                                <th>{{ _('common.created_by') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for store in recent_stores %}
-                                            <tr>
-                                                <td>{{ store.store_id }}</td>
-                                                <td>{{ store.store_name }}</td>
-                                                <td>{{ user_map.get(store.created_by, 'N/A') }}</td>
-                                            </tr>
-                                            {% else %}
-                                            <tr>
-                                                <td colspan="3" class="text-center">{{ _('dashboard.no_recent_stores') }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ _('stores.store_name') }}</th>
+                                            <th>{{ _('common.created_by') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for store in recent_stores %}
+                                        <tr>
+                                            <td>{{ store.store_name }}</td>
+                                            <td>{{ user_map.get(store.created_by, 'N/A') }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="2" class="text-center">{{ _('dashboard.no_recent_stores') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="col-md-12 mb-4"> {# NEW: Recent Reservations Section #}
+                <div class="col-lg-6 mb-4">
                     <div class="card dashboard-card h-100">
                         <div class="card-header bg-white border-0">
                             <div class="d-flex justify-content-between align-items-center">
@@ -279,44 +306,77 @@
                             </div>
                         </div>
                         <div class="card-body p-0">
-                            <div class="table-container">
-                                <div class="table-responsive">
-                                    <table class="table table-hover mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>{{ _('common.id') }}</th>
-                                                <th>{{ _('customers.customer_name') }}</th>
-                                                <th>{{ _('stores.store_name') }}</th>
-                                                <th>{{ _('reservations.reservation_datetime') }}</th>
-                                                <th>{{ _('reservations.reservation_status') }}</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {% for reservation in recent_reservations %}
-                                            <tr>
-                                                <td>{{ reservation.reservation_id }}</td>
-                                                <td>{{ reservation.get_customer_name() }}</td>
-                                                <td>{{ reservation.get_store_name() }}</td>
-                                                <td>{{ reservation.reservation_datetime.strftime('%Y-%m-%d %H:%M') if reservation.reservation_datetime else _('common.not_available_short') }}</td>
-                                                <td>
-                                                    <span class="badge bg-{{ {
-                                                        'Pending': 'warning',
-                                                        'Confirmed': 'success',
-                                                        'Cancelled': 'danger',
-                                                        'Completed': 'info'
-                                                    }[reservation.reservation_status] | default('secondary') }}">
-                                                        {{ _('reservation_statuses.' + reservation.reservation_status) }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            {% else %}
-                                            <tr>
-                                                <td colspan="5" class="text-center">{{ _('dashboard.no_recent_reservations') }}</td>
-                                            </tr>
-                                            {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ _('customers.customer_name') }}</th>
+                                            <th>{{ _('stores.store_name') }}</th>
+                                            <th>{{ _('reservations.reservation_datetime') }}</th>
+                                            <th>{{ _('reservations.reservation_status') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for reservation in recent_reservations %}
+                                        <tr>
+                                            <td>{{ reservation.get_customer_name() }}</td>
+                                            <td>{{ reservation.get_store_name() }}</td>
+                                            <td>{{ reservation.reservation_datetime.strftime('%Y-%m-%d %H:%M') if reservation.reservation_datetime else _('common.not_available_short') }}</td>
+                                            <td>
+                                                <span class="badge bg-{{ {
+                                                    'Pending': 'warning',
+                                                    'Confirmed': 'success',
+                                                    'Cancelled': 'danger',
+                                                    'Completed': 'info'
+                                                }[reservation.reservation_status] | default('secondary') }}">
+                                                    {{ _('reservation_statuses.' + reservation.reservation_status) }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="4" class="text-center">{{ _('dashboard.no_recent_reservations') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 mb-4">
+                    <div class="card dashboard-card h-100">
+                        <div class="card-header bg-white border-0">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">{{ _('dashboard.recent_revenues_section') }}</h5>
+                                <a href="{{ url_for('list_revenues') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ _('stores.store_name') }}</th>
+                                            <th>{{ _('revenues.revenue_date') }}</th>
+                                            <th>{{ _('revenues.guests') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for revenue in recent_revenues %}
+                                        <tr>
+                                            <td>{{ revenue.get_store_name() }}</td>
+                                            <td>{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else _('common.not_available_short') }}</td>
+                                            <td>{{ revenue.revenue_guests if revenue.revenue_guests is not none else _('common.not_available_short') }}</td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="3" class="text-center">{{ _('dashboard.no_recent_revenues') }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -361,6 +421,28 @@
         flex-direction: column;
     }
     
+    .sidebar .nav-link {
+        color: #6c757d;
+    }
+
+    .sidebar .nav-link.active, .sidebar .nav-link:hover {
+        color: #0d6efd;
+        background-color: #e9ecef;
+        border-radius: 0.25rem;
+    }
+
+    .sidebar .nav-link .bi {
+        color: #6c757d;
+    }
+    
+    .sidebar .nav-link.active .bi, .sidebar .nav-link:hover .bi {
+        color: #0d6efd;
+    }
+
+    .sidebar .collapse .nav-link {
+        font-size: 0.9em;
+    }
+
     .content-area {
         flex: 1;
         margin-left: var(--sidebar-width);
@@ -381,14 +463,7 @@
     .dashboard-card:hover {
         transform: translateY(-5px);
     }
-    
-    .table-container {
-        background-color: #fff;
-        border-radius: 0.375rem;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        overflow: hidden;
-    }
-    
+        
     .table thead th {
         font-weight: 600;
         font-size: 0.85rem;
@@ -399,10 +474,6 @@
     
     .table tbody td {
         vertical-align: middle;
-    }
-    
-    .pagination .page-item .page-link {
-        font-size: 0.85rem;
     }
     
     .stat-card-icon {

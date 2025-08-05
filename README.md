@@ -1,6 +1,6 @@
 # CRM System
 
-A simple Customer Relationship Management (CRM) system built with Flask and PostgreSQL. This project allows users to manage customers, stores, user accounts, and now includes a reservation management module. It features role-based access control, multi-language support, and a many-to-many relationship between stores and customers.
+A simple Customer Relationship Management (CRM) system built with Flask and PostgreSQL. This project allows users to manage customers, stores, user accounts, reservations, and now includes revenue management. It features role-based access control, multi-language support, and a many-to-many relationship between stores and customers.
 
 ## Table of Contents
 
@@ -22,6 +22,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Customer Management**: Add, edit, delete customers with pagination, search, and sorting capabilities.
 - **Store Management**: Add, edit, delete stores with pagination, search, and sorting capabilities.
 - **Reservation Management**: Add, edit, delete reservations with pagination, search, and sorting capabilities. Includes customer and store associations.
+- **Revenue Management**: Add, edit, delete revenue entries with pagination, search, and sorting capabilities. Includes revenue types, items, and compliments.
 - **Many-to-Many Relationship**: Manage associations between stores and customers.
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
@@ -44,7 +45,11 @@ crm/
 │   ├── store.py            # Store model
 │   ├── customer.py         # Customer model
 │   ├── store_customer.py   # Many-to-many relation model for stores and customers
-│   └── reservation.py      # Reservation model
+│   ├── reservation.py      # Reservation model
+│   ├── revenue.py          # Revenue model
+│   ├── revenue_type.py     # Revenue Type model
+│   ├── revenue_item.py     # Revenue Item model
+│   └── revenue_compliment.py # Revenue Compliment model
 ├── templates/
 │   ├── base.html           # Base template for all pages
 │   ├── login.html          # Login and registration page
@@ -60,7 +65,10 @@ crm/
 │   ├── users.html          # User management page
 │   ├── user_detail.html    # User detail page
 │   ├── reservations.html   # Reservation management page
-│   └── reservation_detail.html # Reservation detail page
+│   ├── reservation_detail.html # Reservation detail page
+│   ├── revenue_types.html  # Revenue Type management page
+│   ├── revenues.html       # Revenue management page
+│   └── revenue_detail.html # Revenue detail page
 ├── utilities/
 │   ├── security.py         # Password hashing utilities
 │   └── localization.py     # Multi-language translation utilities
@@ -107,6 +115,8 @@ To set up the project locally, follow these steps:
 - **Manage Customers**: Go to `/customers` to perform CRUD operations on customers (requires Admin, Operator, or Contributor role).
 - **Manage Stores**: Go to `/stores` to perform CRUD operations on stores (requires Admin, Operator, or Contributor role).
 - **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role).
+- **Manage Revenues**: Go to `/revenues` to perform CRUD operations on revenue entries (requires Admin, Operator, or Contributor role).
+- **Manage Revenue Types**: Go to `/revenue_types` to perform CRUD operations on revenue types (requires Admin or Operator role).
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
 
@@ -192,6 +202,51 @@ Configuration is managed through `config.py` and environment variables:
          created_by INTEGER REFERENCES users(id),
          updated_by INTEGER REFERENCES users(id)
      );
+
+     CREATE TABLE revenue_types (
+         revenue_type_id SERIAL PRIMARY KEY,
+         revenue_type_name VARCHAR(100) UNIQUE NOT NULL,
+         revenue_type_category VARCHAR(20) NOT NULL CHECK (revenue_type_category IN ('Addition', 'Deduction')),
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         created_by INTEGER REFERENCES users(id),
+         updated_by INTEGER REFERENCES users(id)
+     );
+
+     CREATE TABLE revenues (
+         revenue_id SERIAL PRIMARY KEY,
+         store_id INTEGER REFERENCES stores(store_id) ON DELETE CASCADE,
+         revenue_date DATE NOT NULL,
+         revenue_guests INTEGER,
+         revenue_notes TEXT,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         created_by INTEGER REFERENCES users(id),
+         updated_by INTEGER REFERENCES users(id)
+     );
+
+     CREATE TABLE revenue_items (
+         revenue_item_id SERIAL PRIMARY KEY,
+         revenue_id INTEGER REFERENCES revenues(revenue_id) ON DELETE CASCADE,
+         revenue_type_id INTEGER REFERENCES revenue_types(revenue_type_id) ON DELETE RESTRICT,
+         revenue_item_amount NUMERIC(15, 2) NOT NULL,
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         created_by INTEGER REFERENCES users(id),
+         updated_by INTEGER REFERENCES users(id)
+     );
+
+     CREATE TABLE revenue_compliments (
+         revenue_compliment_id SERIAL PRIMARY KEY,
+         revenue_id INTEGER REFERENCES revenues(revenue_id) ON DELETE CASCADE,
+         revenue_compliment_description TEXT NOT NULL,
+         revenue_compliment_for VARCHAR(100),
+         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        )},
+         created_by INTEGER REFERENCES users(id),
+         updated_by INTEGER REFERENCES users(id)
+     );
      ```
 4. **Create Initial Admin User**:
    - Since users registered via `/register` get the Guest role by default, you need to create an Admin user manually to access full functionality. First, generate a password hash using the following Python script:
@@ -229,9 +284,9 @@ The app will be accessible at `http://localhost:5000`.
 
 Currently, there are no automated tests. You can manually test the application by:
 - Logging in and out.
-- Performing CRUD operations on customers, stores, reservations, and users (Admin role required for some actions).
+- Performing CRUD operations on customers, stores, reservations, revenues, revenue types, and users (Admin role required for some actions).
 - Associating customers with stores and vice versa.
-- Creating, editing, and deleting reservations.
+- Creating, editing, and deleting reservations and revenue entries.
 
 ## License
 

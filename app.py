@@ -6,7 +6,11 @@ from models.user import User
 from models.store import Store
 from models.customer import Customer
 from models.store_customer import StoreCustomer
-from models.reservation import Reservation # Ensure Reservation is imported
+from models.reservation import Reservation
+from models.revenue import Revenue # NEW: Import Revenue model
+from models.revenue_type import RevenueType # NEW: Import RevenueType model
+from models.revenue_item import RevenueItem # NEW: Import RevenueItem model
+from models.revenue_compliment import RevenueCompliment # NEW: Import RevenueCompliment model
 from utilities.security import check_hashed_password, hash_password
 from utilities.localization import init_app_localization, get_translation
 import math
@@ -137,10 +141,12 @@ def dashboard():
     total_stores = len(Store.find_all())
     total_users = len(User.find_all())
     total_reservations = len(Reservation.find_all())
+    total_revenues = len(Revenue.find_all()) # NEW: Get total revenues
     
     recent_customers = Customer.find_all()[-5:]
     recent_stores = Store.find_all()[-5:]
     recent_reservations = Reservation.find_all()[-5:]
+    recent_revenues = Revenue.find_all()[-5:] # NEW: Get recent revenues
 
     users = User.find_all()
     user_map = {user.id: user.username for user in users}
@@ -150,9 +156,11 @@ def dashboard():
                            total_stores=total_stores,
                            total_users=total_users,
                            total_reservations=total_reservations,
+                           total_revenues=total_revenues, # NEW: Pass to template
                            recent_customers=recent_customers,
                            recent_stores=recent_stores,
                            recent_reservations=recent_reservations,
+                           recent_revenues=recent_revenues, # NEW: Pass to template
                            user_map=user_map)
 
 @app.route('/profile')
@@ -505,7 +513,7 @@ def list_customers():
     per_page = 10 # Items per page
 
     # Add 'customer_code', 'customer_telephone', 'customer_email', 'customer_address', 'customer_whatsapp' to search columns
-    search_columns = ['customer_name', 'customer_code', 'customer_is_member', 'customer_organization', 'customer_telephone', 'customer_email', 'customer_address', 'customer_whatsapp'] 
+    search_columns = ['customer_name', 'customer_code', 'customer_organization', 'customer_telephone', 'customer_email', 'customer_address', 'customer_whatsapp'] 
     sortable_columns = ['customer_id', 'customer_name', 'customer_code', 'customer_is_member', 'customer_organization', 'customer_telephone', 'customer_email', 'customer_address', 'customer_whatsapp', 'created_at', 'updated_at'] # Sortable columns
 
     # Validate sort_by to prevent SQL Injection
@@ -540,6 +548,11 @@ def add_customer():
     if request.method == 'POST':
         customer_name = request.form['customer_name']
         customer_code = request.form.get('customer_code')
+
+        # Konversi string kosong atau literal 'None' menjadi None
+        if not customer_code or customer_code.lower() == 'none':
+            customer_code = None
+
         customer_is_member = request.form.get('customer_is_member') == 'on'
         customer_organization = request.form.get('customer_organization')
         customer_telephone = request.form.get('customer_telephone') 
@@ -563,9 +576,8 @@ def add_customer():
             save_success = new_customer.save(g.user.id)
             if save_success:
                 flash(get_translation('flash_messages.customer_added_success_redirect', customer_name=new_customer.customer_name), 'success')
-                return redirect(url_for('view_customer_detail', customer_id=new_customer.customer_id)) # Redirect to new customer's detail
+                return redirect(url_for('view_customer_detail', customer_id=new_customer.customer_id))
             else:
-                # Check for specific error message from model
                 error_message = new_customer.get_last_error()
                 if error_message and "duplicate_key_error:customers_customer_code_key" in error_message:
                     flash(get_translation('flash_messages.customer_code_duplicate', code=customer_code), 'danger')
@@ -575,7 +587,7 @@ def add_customer():
 
 @app.route('/customers/edit/<int:customer_id>', methods=['GET', 'POST'])
 @login_required
-@role_required(['Admin', 'Operator', 'Contributor']) # Admin, Operator, Contributor can edit customers
+@role_required(['Admin', 'Operator', 'Contributor'])
 def edit_customer(customer_id):
     """
     Edits an existing customer.
@@ -587,7 +599,14 @@ def edit_customer(customer_id):
 
     if request.method == 'POST':
         customer.customer_name = request.form['customer_name']
-        customer.customer_code = request.form.get('customer_code')
+        customer_code = request.form.get('customer_code')
+        
+        # Konversi string kosong atau literal 'None' menjadi None
+        if not customer_code or customer_code.lower() == 'none':
+            customer.customer_code = None
+        else:
+            customer.customer_code = customer_code
+
         customer.customer_is_member = request.form.get('customer_is_member') == 'on'
         customer.customer_organization = request.form.get('customer_organization')
         customer.customer_telephone = request.form.get('customer_telephone') 
@@ -600,7 +619,6 @@ def edit_customer(customer_id):
             flash(get_translation('flash_messages.customer_updated_success'), 'success')
             return redirect(url_for('view_customer_detail', customer_id=customer.customer_id))
         else:
-            # Check for specific error message from model
             error_message = customer.get_last_error()
             if error_message and "duplicate_key_error:customers_customer_code_key" in error_message:
                 flash(get_translation('flash_messages.customer_code_duplicate', code=customer.customer_code), 'danger')
@@ -994,6 +1012,488 @@ def search_customers():
             'id': customer.customer_id,
             'name': customer.customer_name,
             'code': customer.customer_code if customer.customer_code else ''
+        })
+    return jsonify(results)
+
+# --- NEW: Revenue Type Management Routes ---
+@app.route('/revenue_types')
+@login_required
+@role_required(['Admin', 'Operator']) # Only Admin and Operator can manage revenue types
+def list_revenue_types():
+    """
+    Displays a list of all revenue types with search, pagination, and sorting features.
+    """
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', type=str)
+    sort_by = request.args.get('sort_by', 'revenue_type_id', type=str)
+    sort_order = request.args.get('sort_order', 'asc', type=str)
+    per_page = 10
+
+    search_columns = ['revenue_type_name', 'revenue_type_category']
+    sortable_columns = ['revenue_type_id', 'revenue_type_name', 'revenue_type_category', 'created_at', 'updated_at']
+
+    if sort_by not in sortable_columns:
+        sort_by = 'revenue_type_id'
+
+    revenue_types = RevenueType.get_paginated_data(page, per_page, search_query, search_columns, sort_by, sort_order)
+    total_revenue_types_count = RevenueType.count_all(search_query, search_columns)
+    
+    total_pages = math.ceil(total_revenue_types_count / per_page)
+
+    users = User.find_all()
+    user_map = {user.id: user.username for user in users}
+    
+    return render_template('revenue_types.html', 
+                           revenue_types=revenue_types, 
+                           user_map=user_map,
+                           page=page,
+                           per_page=per_page,
+                           total_pages=total_pages,
+                           search_query=search_query,
+                           sort_by=sort_by,
+                           sort_order=sort_order)
+
+@app.route('/revenue_types/add', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def add_revenue_type():
+    """
+    Adds a new revenue type.
+    """
+    if request.method == 'POST':
+        revenue_type_name = request.form['revenue_type_name']
+        revenue_type_category = request.form['revenue_type_category']
+
+        if not revenue_type_name or not revenue_type_category:
+            flash(get_translation('flash_messages.revenue_type_all_fields_required'), 'danger')
+        elif revenue_type_category not in ['Addition', 'Deduction']:
+            flash(get_translation('flash_messages.revenue_type_invalid_category'), 'danger')
+        else:
+            new_revenue_type = RevenueType(
+                revenue_type_name=revenue_type_name,
+                revenue_type_category=revenue_type_category
+            )
+            save_success = new_revenue_type.save(g.user.id)
+            if save_success:
+                flash(get_translation('flash_messages.revenue_type_added_success', name=new_revenue_type.revenue_type_name), 'success')
+            else:
+                error_message = new_revenue_type.get_last_error()
+                if error_message and "duplicate_key_error" in error_message:
+                    flash(get_translation('flash_messages.revenue_type_name_duplicate', name=revenue_type_name), 'danger')
+                else:
+                    flash(get_translation('flash_messages.revenue_type_add_failed'), 'danger')
+    return redirect(url_for('list_revenue_types'))
+
+@app.route('/revenue_types/edit/<int:revenue_type_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def edit_revenue_type(revenue_type_id):
+    """
+    Edits an existing revenue type.
+    """
+    revenue_type = RevenueType.find_by_id(revenue_type_id)
+    if not revenue_type:
+        flash(get_translation('flash_messages.revenue_type_not_found'), 'danger')
+        return redirect(url_for('list_revenue_types'))
+
+    if request.method == 'POST':
+        revenue_type.revenue_type_name = request.form['revenue_type_name']
+        revenue_type.revenue_type_category = request.form['revenue_type_category']
+
+        if not revenue_type.revenue_type_name or not revenue_type.revenue_type_category:
+            flash(get_translation('flash_messages.revenue_type_all_fields_required'), 'danger')
+        elif revenue_type.revenue_type_category not in ['Addition', 'Deduction']:
+            flash(get_translation('flash_messages.revenue_type_invalid_category'), 'danger')
+        else:
+            save_success = revenue_type.save(g.user.id)
+            if save_success:
+                flash(get_translation('flash_messages.revenue_type_updated_success'), 'success')
+            else:
+                error_message = revenue_type.get_last_error()
+                if error_message and "duplicate_key_error" in error_message:
+                    flash(get_translation('flash_messages.revenue_type_name_duplicate', name=revenue_type.revenue_type_name), 'danger')
+                else:
+                    flash(get_translation('flash_messages.revenue_type_update_failed'), 'danger')
+    return redirect(url_for('list_revenue_types'))
+
+@app.route('/revenue_types/delete/<int:revenue_type_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def delete_revenue_type(revenue_type_id):
+    """
+    Deletes a revenue type.
+    """
+    revenue_type = RevenueType.find_by_id(revenue_type_id)
+    if not revenue_type:
+        flash(get_translation('flash_messages.revenue_type_not_found'), 'danger')
+    else:
+        try:
+            if revenue_type.delete():
+                flash(get_translation('flash_messages.revenue_type_deleted_success'), 'success')
+            else:
+                flash(get_translation('flash_messages.revenue_type_delete_failed'), 'danger')
+        except Exception as e:
+            # Catch psycopg2.errors.ForeignKeyViolation if the type is still in use
+            if isinstance(e, errors.ForeignKeyViolation):
+                flash(get_translation('flash_messages.revenue_type_in_use'), 'danger')
+            else:
+                flash(get_translation('flash_messages.revenue_type_delete_failed_generic', error=str(e)), 'danger')
+    return redirect(url_for('list_revenue_types'))
+
+
+# --- NEW: Revenue Management Routes ---
+@app.route('/revenues')
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor']) # Admin, Operator, Contributor can view revenues
+def list_revenues():
+    """
+    Displays a list of all revenues with search, pagination, and sorting features.
+    """
+    page = request.args.get('page', 1, type=int)
+    search_query = request.args.get('search', type=str)
+    sort_by = request.args.get('sort_by', 'revenue_id', type=str)
+    sort_order = request.args.get('sort_order', 'asc', type=str)
+    per_page = 10
+
+    search_columns = ['revenue_notes', 'store_name'] # Search by notes and joined store name
+    sortable_columns = ['revenue_id', 'store_name', 'revenue_date', 'revenue_guests', 'created_at', 'updated_at']
+    
+    if sort_by not in sortable_columns:
+        sort_by = 'revenue_id'
+
+    revenues = Revenue.get_paginated_data(page, per_page, search_query, search_columns, sort_by, sort_order)
+    total_revenues_count = Revenue.count_all(search_query, search_columns)
+    
+    total_pages = math.ceil(total_revenues_count / per_page)
+    
+    users = User.find_all()
+    user_map = {user.id: user.username for user in users}
+    
+    return render_template('revenues.html', 
+                           revenues=revenues, 
+                           user_map=user_map,
+                           page=page,
+                           per_page=per_page,
+                           total_pages=total_pages,
+                           search_query=search_query,
+                           sort_by=sort_by,
+                           sort_order=sort_order)
+
+@app.route('/revenues/add', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def add_revenue():
+    """
+    Adds a new revenue entry.
+    """
+    if request.method == 'POST':
+        store_id = request.form['store_id']
+        revenue_date_str = request.form['revenue_date']
+        revenue_guests = request.form.get('revenue_guests')
+        revenue_notes = request.form.get('revenue_notes')
+
+        # Convert revenue_guests to integer, handle empty string
+        if revenue_guests:
+            try:
+                revenue_guests = int(revenue_guests)
+            except ValueError:
+                flash(get_translation('flash_messages.revenue_guests_invalid'), 'danger')
+                return redirect(url_for('list_revenues'))
+        else:
+            revenue_guests = None
+
+        if not store_id or not revenue_date_str:
+            flash(get_translation('flash_messages.revenue_all_fields_required'), 'danger')
+        else:
+            try:
+                revenue_date = datetime.datetime.strptime(revenue_date_str, '%Y-%m-%d').date()
+                
+                new_revenue = Revenue(
+                    store_id=int(store_id),
+                    revenue_date=revenue_date,
+                    revenue_guests=revenue_guests,
+                    revenue_notes=revenue_notes
+                )
+                if new_revenue.save(g.user.id):
+                    flash(get_translation('flash_messages.revenue_added_success_redirect', revenue_id=new_revenue.revenue_id), 'success')
+                    return redirect(url_for('view_revenue_detail', revenue_id=new_revenue.revenue_id))
+                else:
+                    flash(get_translation('flash_messages.revenue_add_failed'), 'danger')
+            except ValueError:
+                flash(get_translation('flash_messages.revenue_date_invalid'), 'danger')
+            except Exception as e:
+                flash(get_translation('flash_messages.revenue_add_failed_generic', error=str(e)), 'danger')
+    return redirect(url_for('list_revenues'))
+
+@app.route('/revenues/edit/<int:revenue_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def edit_revenue(revenue_id):
+    """
+    Edits an existing revenue entry.
+    """
+    revenue = Revenue.find_by_id(revenue_id)
+    if not revenue:
+        flash(get_translation('flash_messages.revenue_not_found'), 'danger')
+        return redirect(url_for('list_revenues'))
+
+    if request.method == 'POST':
+        revenue.store_id = int(request.form['store_id'])
+        revenue_date_str = request.form['revenue_date']
+        revenue.revenue_guests = request.form.get('revenue_guests')
+        revenue.revenue_notes = request.form.get('revenue_notes')
+
+        # Convert revenue_guests to integer, handle empty string
+        if revenue.revenue_guests:
+            try:
+                revenue.revenue_guests = int(revenue.revenue_guests)
+            except ValueError:
+                flash(get_translation('flash_messages.revenue_guests_invalid'), 'danger')
+                return redirect(url_for('view_revenue_detail', revenue_id=revenue.revenue_id))
+        else:
+            revenue.revenue_guests = None
+
+        try:
+            revenue.revenue_date = datetime.datetime.strptime(revenue_date_str, '%Y-%m-%d').date()
+            if revenue.save(g.user.id):
+                flash(get_translation('flash_messages.revenue_updated_success'), 'success')
+                return redirect(url_for('view_revenue_detail', revenue_id=revenue.revenue_id))
+            else:
+                flash(get_translation('flash_messages.revenue_update_failed'), 'danger')
+        except ValueError:
+            flash(get_translation('flash_messages.revenue_date_invalid'), 'danger')
+        except Exception as e:
+            flash(get_translation('flash_messages.revenue_update_failed_generic', error=str(e)), 'danger')
+    return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+@app.route('/revenues/delete/<int:revenue_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def delete_revenue(revenue_id):
+    """
+    Deletes a revenue entry.
+    """
+    revenue = Revenue.find_by_id(revenue_id)
+    if not revenue:
+        flash(get_translation('flash_messages.revenue_not_found'), 'danger')
+    else:
+        if revenue.delete():
+            flash(get_translation('flash_messages.revenue_deleted_success'), 'success')
+        else:
+            flash(get_translation('flash_messages.revenue_delete_failed'), 'danger')
+    return redirect(url_for('list_revenues'))
+
+@app.route('/revenues/<int:revenue_id>')
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def view_revenue_detail(revenue_id):
+    """
+    Displays full details of a revenue entry, including its items and compliments.
+    """
+    revenue = Revenue.find_by_id(revenue_id)
+    if not revenue:
+        flash(get_translation('flash_messages.revenue_not_found'), 'danger')
+        return redirect(url_for('list_revenues'))
+    
+    created_by_user = User.find_by_id(revenue.created_by) if hasattr(revenue, 'created_by') and revenue.created_by else None
+    updated_by_user = User.find_by_id(revenue.updated_by) if hasattr(revenue, 'updated_by') and revenue.updated_by else None
+
+    store_details = revenue.get_store_details()
+
+    # Fetch all revenue items for this revenue
+    revenue_items = RevenueItem._execute_query(
+        "SELECT * FROM revenue_items WHERE revenue_id = %s ORDER BY created_at ASC",
+        (revenue_id,), fetch_all=True
+    )
+    revenue_items = [RevenueItem(**item) for item in revenue_items] if revenue_items else []
+
+    # Fetch all revenue compliments for this revenue
+    revenue_compliments = RevenueCompliment._execute_query(
+        "SELECT * FROM revenue_compliments WHERE revenue_id = %s ORDER BY created_at ASC",
+        (revenue_id,), fetch_all=True
+    )
+    revenue_compliments = [RevenueCompliment(**comp) for comp in revenue_compliments] if revenue_compliments else []
+
+    # Calculate total revenue
+    total_revenue_additions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Addition')
+    total_revenue_deductions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Deduction')
+    net_revenue = total_revenue_additions - total_revenue_deductions
+
+    all_stores = Store.find_all() # For dropdown in edit modal
+    all_revenue_types = RevenueType.find_all() # For dropdown in add item modal
+
+    users = User.find_all()
+    user_map = {user.id: user.username for user in users}
+
+    return render_template('revenue_detail.html', 
+                           revenue=revenue,
+                           store_details=store_details,
+                           revenue_items=revenue_items,
+                           revenue_compliments=revenue_compliments,
+                           total_revenue_additions=total_revenue_additions,
+                           total_revenue_deductions=total_revenue_deductions,
+                           net_revenue=net_revenue,
+                           created_by_username=created_by_user.username if created_by_user else 'N/A',
+                           updated_by_username=updated_by_user.username if updated_by_user else 'N/A',
+                           all_stores=all_stores,
+                           all_revenue_types=all_revenue_types,
+                           user_map=user_map)
+
+# --- NEW: Revenue Item Management Routes (Nested under Revenue Detail) ---
+@app.route('/revenues/<int:revenue_id>/items/add', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def add_revenue_item(revenue_id):
+    """
+    Adds a new revenue item to a specific revenue entry.
+    """
+    revenue = Revenue.find_by_id(revenue_id)
+    if not revenue:
+        flash(get_translation('flash_messages.revenue_not_found'), 'danger')
+        return redirect(url_for('list_revenues'))
+
+    if request.method == 'POST':
+        revenue_type_id = request.form['revenue_type_id']
+        revenue_item_amount = request.form['revenue_item_amount']
+        revenue_item_notes = request.form.get('revenue_item_notes')
+
+        if not revenue_type_id or not revenue_item_amount:
+            flash(get_translation('flash_messages.revenue_item_all_fields_required'), 'danger')
+        else:
+            try:
+                new_item = RevenueItem(
+                    revenue_id=revenue_id,
+                    revenue_type_id=int(revenue_type_id),
+                    revenue_item_amount=float(revenue_item_amount),
+                    revenue_item_notes=revenue_item_notes
+                )
+                if new_item.save(g.user.id):
+                    flash(get_translation('flash_messages.revenue_item_added_success'), 'success')
+                else:
+                    flash(get_translation('flash_messages.revenue_item_add_failed'), 'danger')
+            except ValueError:
+                flash(get_translation('flash_messages.revenue_item_amount_invalid'), 'danger')
+            except Exception as e:
+                flash(get_translation('flash_messages.revenue_item_add_failed_generic', error=str(e)), 'danger')
+    return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+@app.route('/revenues/<int:revenue_id>/items/delete/<int:revenue_item_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def delete_revenue_item(revenue_id, revenue_item_id):
+    """
+    Deletes a specific revenue item from a revenue entry.
+    """
+    revenue_item = RevenueItem.find_by_id(revenue_item_id)
+    if not revenue_item or revenue_item.revenue_id != revenue_id:
+        flash(get_translation('flash_messages.revenue_item_not_found'), 'danger')
+    else:
+        if revenue_item.delete():
+            flash(get_translation('flash_messages.revenue_item_deleted_success'), 'success')
+        else:
+            flash(get_translation('flash_messages.revenue_item_delete_failed'), 'danger')
+    return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+# --- NEW: Revenue Compliment Management Routes (Nested under Revenue Detail) ---
+@app.route('/revenues/<int:revenue_id>/compliments/add', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def add_revenue_compliment(revenue_id):
+    """
+    Adds a new revenue compliment to a specific revenue entry.
+    """
+    revenue = Revenue.find_by_id(revenue_id)
+    if not revenue:
+        flash(get_translation('flash_messages.revenue_not_found'), 'danger')
+        return redirect(url_for('list_revenues'))
+
+    if request.method == 'POST':
+        revenue_compliment_description = request.form['revenue_compliment_description']
+        revenue_compliment_for = request.form.get('revenue_compliment_for')
+        revenue_compliment_notes = request.form.get('revenue_compliment_notes')
+
+        if not revenue_compliment_description:
+            flash(get_translation('flash_messages.revenue_compliment_description_required'), 'danger')
+        else:
+            new_compliment = RevenueCompliment(
+                revenue_id=revenue_id,
+                revenue_compliment_description=revenue_compliment_description,
+                revenue_compliment_for=revenue_compliment_for,
+                revenue_compliment_notes=revenue_compliment_notes
+            )
+            if new_compliment.save(g.user.id):
+                flash(get_translation('flash_messages.revenue_compliment_added_success'), 'success')
+            else:
+                flash(get_translation('flash_messages.revenue_compliment_add_failed'), 'danger')
+    return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+@app.route('/revenues/<int:revenue_id>/compliments/delete/<int:revenue_compliment_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def delete_revenue_compliment(revenue_id, revenue_compliment_id):
+    """
+    Deletes a specific revenue compliment from a revenue entry.
+    """
+    revenue_compliment = RevenueCompliment.find_by_id(revenue_compliment_id)
+    if not revenue_compliment or revenue_compliment.revenue_id != revenue_id:
+        flash(get_translation('flash_messages.revenue_compliment_not_found'), 'danger')
+    else:
+        if revenue_compliment.delete():
+            flash(get_translation('flash_messages.revenue_compliment_deleted_success'), 'success')
+        else:
+            flash(get_translation('flash_messages.revenue_compliment_delete_failed'), 'danger')
+    return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+
+# NEW: API endpoint for store search (for Revenue Add/Edit Modals)
+@app.route('/api/stores/search')
+@login_required
+def search_stores():
+    """
+    API endpoint to search for stores by name.
+    Returns a JSON list of matching stores (id, name).
+    """
+    query = request.args.get('q', '')
+    # Limit results for performance
+    stores = Store.get_paginated_data(
+        page=1, 
+        per_page=10, # Limit to 10 results for autocomplete
+        search_query=query, 
+        search_columns=['store_name']
+    )
+    
+    results = []
+    for store in stores:
+        results.append({
+            'id': store.store_id,
+            'name': store.store_name
+        })
+    return jsonify(results)
+
+
+# NEW: API endpoint for revenue type search (for Revenue Item Add/Edit Modals)
+@app.route('/api/revenue_types/search')
+@login_required
+def search_revenue_types():
+    """
+    API endpoint to search for revenue types by name or category.
+    Returns a JSON list of matching revenue types (id, name, category).
+    """
+    query = request.args.get('q', '')
+    # Limit results for performance
+    revenue_types = RevenueType.get_paginated_data(
+        page=1, 
+        per_page=10, # Limit to 10 results for autocomplete
+        search_query=query, 
+        search_columns=['revenue_type_name', 'revenue_type_category']
+    )
+    
+    results = []
+    for rt in revenue_types:
+        results.append({
+            'id': rt.revenue_type_id,
+            'name': rt.revenue_type_name,
+            'category': rt.revenue_type_category
         })
     return jsonify(results)
 
