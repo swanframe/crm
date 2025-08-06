@@ -14,9 +14,11 @@
             <input type="hidden" name="sort_by" value="{{ sort_by }}">
             <input type="hidden" name="sort_order" value="{{ sort_order }}">
         </form>
+        {% if g.user.user_level in ['Admin','Operator', 'Contributor'] %}
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRevenueTypeModal">
             <i class="bi bi-plus-circle me-2"></i>{{ _('common.add_new', entity_name=_('sidebar.revenue_types')) }}
         </button>
+        {% endif %}
     </div>
 </div>
 
@@ -53,11 +55,13 @@
                                     data-rt-category="{{ rt.revenue_type_category }}">
                                 <i class="bi bi-pencil-square"></i> {{ _('common.edit') }}
                             </button>
+                            {% if g.user.user_level in ['Admin','Operator'] %}
                             <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteRevenueTypeModal"
                                     data-rt-id="{{ rt.revenue_type_id }}"
                                     data-rt-name="{{ rt.revenue_type_name }}">
                                 <i class="bi bi-trash"></i> {{ _('common.delete') }}
                             </button>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}

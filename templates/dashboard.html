@@ -57,8 +57,8 @@
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'list_revenues' %}active{% endif %}" href="{{ url_for('list_revenues') }}">{{ _('sidebar.revenues') }}</a>
                         </li>
-                        {# Revenue Types visibility: Admin, Operator #}
-                        {% if g.user.user_level in ['Admin', 'Operator'] %}
+                        {# Revenue Types visibility: Admin, Operator, Contributor #}
+                        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
                         <li class="nav-item">
                             <a class="nav-link {% if request.endpoint == 'list_revenue_types' %}active{% endif %}" href="{{ url_for('list_revenue_types') }}">{{ _('sidebar.revenue_types') }}</a>
                         </li>

@@ -11,6 +11,8 @@
         <a href="{{ url_for('list_revenues') }}" class="btn btn-outline-secondary me-2">
             <i class="bi bi-arrow-left me-1"></i>{{ _('common.back_to', entity_name=_('sidebar.revenues')) }}
         </a>
+        {# Hanya Admin, Operator, Contributor yang bisa mengedit #}
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %}
         <button class="btn btn-warning me-2" data-bs-toggle="modal" data-bs-target="#editRevenueModal"
                 data-revenue-id="{{ revenue.revenue_id }}"
                 data-store-id="{{ revenue.store_id }}"
@@ -20,11 +22,15 @@
                 data-store-name="{{ store_details.store_name if store_details else '' }}"> {# Pass store name for display #}
             <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
         </button>
+        {% endif %}
+        {# Hanya Admin dan Operator yang bisa menghapus #}
+        {% if g.user.user_level in ['Admin', 'Operator'] %}
         <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteRevenueModal"
                 data-revenue-id="{{ revenue.revenue_id }}"
                 data-store-name="{{ store_details.store_name if store_details else '' }}">
             <i class="bi bi-trash me-1"></i>{{ _('common.delete') }}
         </button>
+        {% endif %}
     </div>
 </div>
 

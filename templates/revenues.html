@@ -14,9 +14,11 @@
             <input type="hidden" name="sort_by" value="{{ sort_by }}">
             <input type="hidden" name="sort_order" value="{{ sort_order }}">
         </form>
+        {% if g.user.user_level in ['Admin', 'Operator', 'Contributor'] %} {# Admin, Operator, Contributor can add revenues #}
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addRevenueModal">
             <i class="bi bi-plus-circle me-2"></i>{{ _('common.add_new', entity_name=_('sidebar.revenues')) }}
         </button>
+        {% endif %}
     </div>
 </div>
 
