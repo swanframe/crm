@@ -139,7 +139,6 @@ def dashboard():
     """
     total_customers = len(Customer.find_all())
     total_stores = len(Store.find_all())
-    total_users = len(User.find_all())
     total_reservations = len(Reservation.find_all())
     total_revenues = len(Revenue.find_all()) # NEW: Get total revenues
     
@@ -154,7 +153,6 @@ def dashboard():
     return render_template('dashboard.html', 
                            total_customers=total_customers,
                            total_stores=total_stores,
-                           total_users=total_users,
                            total_reservations=total_reservations,
                            total_revenues=total_revenues, # NEW: Pass to template
                            recent_customers=recent_customers,

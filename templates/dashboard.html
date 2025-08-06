@@ -207,22 +207,6 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="col-xl col-md-6 mb-3">
-                    <div class="card dashboard-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="card-title text-muted text-uppercase small">{{ _('dashboard.total_users_card') }}</h6>
-                                    <h4 class="fw-bold mb-0">{{ total_users }}</h4>
-                                </div>
-                                <div class="stat-card-icon bg-info bg-opacity-10 text-info">
-                                    <i class="bi bi-person-lines-fill"></i>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
             
             <!-- Recent Activities -->
@@ -313,7 +297,6 @@
                                             <th>{{ _('customers.customer_name') }}</th>
                                             <th>{{ _('stores.store_name') }}</th>
                                             <th>{{ _('reservations.reservation_datetime') }}</th>
-                                            <th>{{ _('reservations.reservation_status') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -322,16 +305,6 @@
                                             <td>{{ reservation.get_customer_name() }}</td>
                                             <td>{{ reservation.get_store_name() }}</td>
                                             <td>{{ reservation.reservation_datetime.strftime('%Y-%m-%d %H:%M') if reservation.reservation_datetime else _('common.not_available_short') }}</td>
-                                            <td>
-                                                <span class="badge bg-{{ {
-                                                    'Pending': 'warning',
-                                                    'Confirmed': 'success',
-                                                    'Cancelled': 'danger',
-                                                    'Completed': 'info'
-                                                }[reservation.reservation_status] | default('secondary') }}">
-                                                    {{ _('reservation_statuses.' + reservation.reservation_status) }}
-                                                </span>
-                                            </td>
                                         </tr>
                                         {% else %}
                                         <tr>
