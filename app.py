@@ -1018,7 +1018,7 @@ def search_customers():
 # --- NEW: Revenue Type Management Routes ---
 @app.route('/revenue_types')
 @login_required
-@role_required(['Admin', 'Operator']) # Only Admin and Operator can manage revenue types
+@role_required(['Admin', 'Operator', 'Contributor'])
 def list_revenue_types():
     """
     Displays a list of all revenue types with search, pagination, and sorting features.
@@ -1086,7 +1086,7 @@ def add_revenue_type():
 
 @app.route('/revenue_types/edit/<int:revenue_type_id>', methods=['POST'])
 @login_required
-@role_required(['Admin', 'Operator'])
+@role_required(['Admin', 'Operator', 'Contributor'])
 def edit_revenue_type(revenue_type_id):
     """
     Edits an existing revenue type.
@@ -1379,7 +1379,7 @@ def add_revenue_item(revenue_id):
 
 @app.route('/revenues/<int:revenue_id>/items/delete/<int:revenue_item_id>', methods=['POST'])
 @login_required
-@role_required(['Admin', 'Operator'])
+@role_required(['Admin', 'Operator', 'Contributor'])
 def delete_revenue_item(revenue_id, revenue_item_id):
     """
     Deletes a specific revenue item from a revenue entry.
@@ -1429,7 +1429,7 @@ def add_revenue_compliment(revenue_id):
 
 @app.route('/revenues/<int:revenue_id>/compliments/delete/<int:revenue_compliment_id>', methods=['POST'])
 @login_required
-@role_required(['Admin', 'Operator'])
+@role_required(['Admin', 'Operator', 'Contributor'])
 def delete_revenue_compliment(revenue_id, revenue_compliment_id):
     """
     Deletes a specific revenue compliment from a revenue entry.
