@@ -34,9 +34,10 @@
     </div>
 </div>
 
+{# Mengubah tata letak menjadi satu kolom penuh untuk Informasi Pendapatan dan Ringkasan #}
 <div class="row">
-    <!-- Revenue Details & Summary -->
-    <div class="col-lg-5 mb-4">
+    <!-- Revenue Details & Summary (sekarang menjadi satu kolom penuh) -->
+    <div class="col-12 mb-4"> {# Mengubah col-lg-5 menjadi col-12 #}
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white border-0">
                 <h5 class="mb-0">{{ _('revenues.revenue_information') }}</h5>
@@ -89,9 +90,12 @@
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Revenue Items (Additions & Deductions) -->
-    <div class="col-lg-7 mb-4">
+{# Memindahkan Item Pendapatan ke baris baru dan menjadikannya satu kolom penuh #}
+<div class="row">
+    <!-- Revenue Items (Additions & Deductions) (sekarang menjadi satu kolom penuh) -->
+    <div class="col-12 mb-4"> {# Mengubah col-lg-7 menjadi col-12 #}
         <div class="card shadow-sm">
             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">{{ _('revenues.revenue_items') }}</h5>
@@ -142,7 +146,7 @@
     </div>
 </div>
 
-<!-- Compliments Section -->
+<!-- Compliments Section (tetap satu kolom penuh) -->
 <div class="row">
     <div class="col-12">
         <div class="card shadow-sm">
