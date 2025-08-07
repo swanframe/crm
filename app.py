@@ -1139,37 +1139,49 @@ def delete_revenue_type(revenue_type_id):
     return redirect(url_for('list_revenue_types'))
 
 
-# --- NEW: Revenue Management Routes ---
+# --- Revenue Management Routes ---
 @app.route('/revenues')
 @login_required
-@role_required(['Admin', 'Operator', 'Contributor']) # Admin, Operator, Contributor can view revenues
+@role_required(['Admin', 'Operator', 'Contributor'])
 def list_revenues():
     """
     Displays a list of all revenues with search, pagination, and sorting features.
     """
+    # Mengambil parameter pagination, pencarian, dan pengurutan dari URL
     page = request.args.get('page', 1, type=int)
     search_query = request.args.get('search', type=str)
-    sort_by = request.args.get('sort_by', 'revenue_id', type=str)
-    sort_order = request.args.get('sort_order', 'asc', type=str)
-    per_page = 10
+    sort_by = request.args.get('sort_by', 'revenue_id', type=str) # Default sort by 'revenue_id'
+    sort_order = request.args.get('sort_order', 'desc', type=str) # Default sort order 'desc'
+    per_page = 10 # Items per page
 
-    search_columns = ['revenue_notes', 'store_name'] # Search by notes and joined store name
-    sortable_columns = ['revenue_id', 'store_name', 'revenue_date', 'revenue_guests', 'created_at', 'updated_at']
-    
+    # Kolom yang dapat dicari dan diurutkan
+    search_columns = ['revenue_date', 'notes'] # Asumsi pencarian sederhana
+    sortable_columns = ['revenue_id', 'revenue_date', 'store_id', 'guests', 'notes', 'created_at', 'updated_at']
+
+    # Validasi sort_by untuk mencegah SQL Injection
     if sort_by not in sortable_columns:
-        sort_by = 'revenue_id'
+        sort_by = 'revenue_id' # Fallback ke default jika kolom tidak valid
 
+    # Mendapatkan data pendapatan yang dipaginasi
+    # Asumsi Revenue model memiliki metode get_paginated_data dan count_all
     revenues = Revenue.get_paginated_data(page, per_page, search_query, search_columns, sort_by, sort_order)
     total_revenues_count = Revenue.count_all(search_query, search_columns)
     
+    # Menghitung total halaman
     total_pages = math.ceil(total_revenues_count / per_page)
     
+    # Mendapatkan data user untuk mapping
     users = User.find_all()
     user_map = {user.id: user.username for user in users}
+
+    # Mendapatkan data store untuk mapping
+    stores = Store.find_all()
+    store_map = {store.store_id: store.store_name for store in stores}
     
     return render_template('revenues.html', 
                            revenues=revenues, 
                            user_map=user_map,
+                           store_map=store_map,
                            page=page,
                            per_page=per_page,
                            total_pages=total_pages,

@@ -76,13 +76,59 @@
 </div>
 
 <!-- Pagination Controls -->
-{% if total_pages > 1 %}
 <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
-        <!-- Pagination links here, similar to other pages -->
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenue_types', page=1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.first_page') }}">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenue_types', page=page-1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.previous_page') }}">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        
+        {% set pages_to_show = 5 %}
+        {% set start_page = [1, page - (pages_to_show // 2)] | max %}
+        {% set end_page = [total_pages, page + (pages_to_show // 2)] | min %}
+
+        {% if start_page > 1 %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('list_revenue_types', page=1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}">1</a>
+            </li>
+            {% if start_page > 2 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endif %}
+
+        {% for p in range(start_page, end_page + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('list_revenue_types', page=p, search=search_query, sort_by=sort_by, sort_order=sort_order) }}">{{ p }}</a>
+            </li>
+        {% endfor %}
+
+        {% if end_page < total_pages %}
+            {% if end_page < total_pages - 1 %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('list_revenue_types', page=total_pages, search=search_query, sort_by=sort_by, sort_order=sort_order) }}">{{ total_pages }}</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenue_types', page=page+1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.next_page') }}">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenue_types', page=total_pages, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.last_page') }}">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
     </ul>
 </nav>
-{% endif %}
 
 <!-- Add Revenue Type Modal -->
 <div class="modal fade" id="addRevenueTypeModal" tabindex="-1" aria-labelledby="addRevenueTypeModalLabel" aria-hidden="true">

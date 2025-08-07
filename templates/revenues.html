@@ -22,36 +22,78 @@
     </div>
 </div>
 
+{# Revenue Table with Pagination #}
 <div class="card shadow-sm mb-4">
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
-                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_id', sort_order='asc' if sort_by != 'revenue_id' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('common.id') }} {% if sort_by == 'revenue_id' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
-                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='store_name', sort_order='asc' if sort_by != 'store_name' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('stores.store_name') }} {% if sort_by == 'store_name' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
-                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_date', sort_order='asc' if sort_by != 'revenue_date' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('revenues.revenue_date') }} {% if sort_by == 'revenue_date' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
-                        <th><a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_guests', sort_order='asc' if sort_by != 'revenue_guests' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">{{ _('revenues.guests') }} {% if sort_by == 'revenue_guests' %}<i class="bi bi-caret-{{ 'up' if sort_order == 'asc' else 'down' }}-fill"></i>{% endif %}</a></th>
+                        {# Sortable Column: ID #}
+                        <th>
+                            <a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_id', sort_order='asc' if sort_by != 'revenue_id' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">
+                                {{ _('common.id') }}
+                                {% if sort_by == 'revenue_id' %}
+                                    {% if sort_order == 'asc' %} <i class="bi bi-caret-up-fill" aria-label="{{ _('common.sorted_ascending') }}"></i>
+                                    {% else %} <i class="bi bi-caret-down-fill" aria-label="{{ _('common.sorted_descending') }}"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        {# Sortable Column: Date #}
+                        <th>
+                            <a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='revenue_date', sort_order='asc' if sort_by != 'revenue_date' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">
+                                {{ _('revenues.revenue_date') }}
+                                {% if sort_by == 'revenue_date' %}
+                                    {% if sort_order == 'asc' %} <i class="bi bi-caret-up-fill" aria-label="{{ _('common.sorted_ascending') }}"></i>
+                                    {% else %} <i class="bi bi-caret-down-fill" aria-label="{{ _('common.sorted_descending') }}"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        {# Sortable Column: Store #}
+                        <th>
+                            <a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='store_id', sort_order='asc' if sort_by != 'store_id' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">
+                                {{ _('sidebar.stores') }}
+                                {% if sort_by == 'store_id' %}
+                                    {% if sort_order == 'asc' %} <i class="bi bi-caret-up-fill" aria-label="{{ _('common.sorted_ascending') }}"></i>
+                                    {% else %} <i class="bi bi-caret-down-fill" aria-label="{{ _('common.sorted_descending') }}"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
+                        {# Sortable Column: Guests #}
+                        <th>
+                            <a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='guests', sort_order='asc' if sort_by != 'guests' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">
+                                {{ _('revenues.guests') }}
+                                {% if sort_by == 'guests' %}
+                                    {% if sort_order == 'asc' %} <i class="bi bi-caret-up-fill" aria-label="{{ _('common.sorted_ascending') }}"></i>
+                                    {% else %} <i class="bi bi-caret-down-fill" aria-label="{{ _('common.sorted_descending') }}"></i>
+                                    {% endif %}
+                                {% endif %}
+                            </a>
+                        </th>
                         <th>{{ _('common.actions') }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for revenue in revenues %}
-                    <tr>
-                        <td>{{ revenue.revenue_id }}</td>
-                        <td>{{ revenue.get_store_name() }}</td>
-                        <td>{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else _('common.not_available_short') }}</td>
-                        <td>{{ revenue.revenue_guests if revenue.revenue_guests is not none else _('common.not_available_short') }}</td>
-                        <td>
-                            <a href="{{ url_for('view_revenue_detail', revenue_id=revenue.revenue_id) }}" class="btn btn-sm btn-outline-primary me-1">
-                                <i class="bi bi-eye"></i> {{ _('common.view') }}
-                            </a>
-                        </td>
-                    </tr>
+                        <tr>
+                            <td>{{ revenue.revenue_id }}</td>
+                            <td>{{ revenue.revenue_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ store_map.get(revenue.store_id, 'N/A') }}</td>
+                            <td>{{ revenue.guests }}</td>
+                            <td>
+                                <a href="{{ url_for('view_revenue_detail', revenue_id=revenue.revenue_id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-eye"></i> {{ _('common.view') }}
+                                </a>
+                                {# Tambahkan tombol edit dan delete jika diperlukan #}
+                            </td>
+                        </tr>
                     {% else %}
-                    <tr>
-                        <td colspan="5" class="text-center">{{ _('common.no_records_found', entity_name=_('sidebar.revenues')) }}</td>
-                    </tr>
+                        <tr>
+                            <td colspan="5" class="text-center">{{ _('common.no_records_found', entity_name=_('sidebar.revenues')) }}</td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
@@ -60,14 +102,44 @@
 </div>
 
 <!-- Pagination Controls -->
-{% if total_pages > 1 %}
 <nav aria-label="Page navigation">
     <ul class="pagination justify-content-center">
-        <!-- Pagination links here, similar to other pages -->
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenues', page=1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.first_page') }}">
+                <span aria-hidden="true">&laquo;&laquo;</span>
+            </a>
+        </li>
+        <li class="page-item {% if page == 1 %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenues', page=page-1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.previous_page') }}">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% set pages_to_show = 5 %}
+        {% set start_page = (page - (pages_to_show - 1) // 2) | int %}
+        {% set end_page = (page + pages_to_show // 2) | int %}
+        {% if start_page < 1 %}{% set start_page = 1 %}{% endif %}
+        {% if end_page > total_pages %}{% set end_page = total_pages %}{% endif %}
+        {% if end_page - start_page < pages_to_show - 1 %}{% set start_page = (end_page - pages_to_show + 1) | int %}{% endif %}
+        {% if start_page < 1 %}{% set start_page = 1 %}{% endif %}
+
+        {% for p in range(start_page, end_page + 1) %}
+            <li class="page-item {% if p == page %}active{% endif %}">
+                <a class="page-link" href="{{ url_for('list_revenues', page=p, search=search_query, sort_by=sort_by, sort_order=sort_order) }}">{{ p }}</a>
+            </li>
+        {% endfor %}
+
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenues', page=page+1, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.next_page') }}">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('list_revenues', page=total_pages, search=search_query, sort_by=sort_by, sort_order=sort_order) }}" aria-label="{{ _('common.last_page') }}">
+                <span aria-hidden="true">&raquo;&raquo;</span>
+            </a>
+        </li>
     </ul>
 </nav>
-{% endif %}
-
 
 <!-- Add Revenue Modal -->
 <div class="modal fade" id="addRevenueModal" tabindex="-1" aria-labelledby="addRevenueModalLabel" aria-hidden="true">
