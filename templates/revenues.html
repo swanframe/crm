@@ -62,17 +62,6 @@
                                 {% endif %}
                             </a>
                         </th>
-                        {# Sortable Column: Guests #}
-                        <th>
-                            <a href="{{ url_for('list_revenues', page=page, search=search_query, sort_by='guests', sort_order='asc' if sort_by != 'guests' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">
-                                {{ _('revenues.guests') }}
-                                {% if sort_by == 'guests' %}
-                                    {% if sort_order == 'asc' %} <i class="bi bi-caret-up-fill" aria-label="{{ _('common.sorted_ascending') }}"></i>
-                                    {% else %} <i class="bi bi-caret-down-fill" aria-label="{{ _('common.sorted_descending') }}"></i>
-                                    {% endif %}
-                                {% endif %}
-                            </a>
-                        </th>
                         <th>{{ _('common.actions') }}</th>
                     </tr>
                 </thead>
@@ -82,7 +71,6 @@
                             <td>{{ revenue.revenue_id }}</td>
                             <td>{{ revenue.revenue_date.strftime('%Y-%m-%d') }}</td>
                             <td>{{ store_map.get(revenue.store_id, 'N/A') }}</td>
-                            <td>{{ revenue.guests }}</td>
                             <td>
                                 <a href="{{ url_for('view_revenue_detail', revenue_id=revenue.revenue_id) }}" class="btn btn-sm btn-outline-primary me-1">
                                     <i class="bi bi-eye"></i> {{ _('common.view') }}
@@ -152,10 +140,13 @@
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="add_store_search" class="form-label">{{ _('stores.store_name') }}</label>
-                        <input type="text" class="form-control" id="add_store_search" placeholder="{{ _('revenues.search_store_placeholder') }}" autocomplete="off" required>
-                        <input type="hidden" id="add_store_id_hidden" name="store_id" required>
-                        <div id="add_store_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
+                        <label for="add_store_id" class="form-label">{{ _('stores.store_name') }}</label>
+                        <select class="form-select" id="add_store_id" name="store_id" required>
+                            <option value="" disabled selected>{{ _('common.select_placeholder', entity_name=_('sidebar.stores')) }}</option>
+                            {% for store in stores %}
+                            <option value="{{ store.store_id }}">{{ store.store_name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="revenue_date" class="form-label">{{ _('revenues.revenue_date') }}</label>
@@ -178,84 +169,4 @@
         </div>
     </div>
 </div>
-
-<script>
-// Utility function for debouncing
-function debounce(func, delay) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), delay);
-    };
-}
-
-// Function to handle store search and populate suggestions
-function setupStoreSearch(searchInputId, hiddenInputId, suggestionsDivId) {
-    const searchInput = document.getElementById(searchInputId);
-    const hiddenInput = document.getElementById(hiddenInputId);
-    const suggestionsDiv = document.getElementById(suggestionsDivId);
-
-    if (!searchInput || !hiddenInput || !suggestionsDiv) {
-        console.error('One or more elements not found for store search setup:', { searchInputId, hiddenInputId, suggestionsDivId });
-        return;
-    }
-
-    const fetchStores = debounce(async (query) => {
-        if (query.length < 1) {
-            suggestionsDiv.innerHTML = '';
-            suggestionsDiv.style.display = 'none';
-            return;
-        }
-
-        try {
-            const response = await fetch(`/api/stores/search?q=${encodeURIComponent(query)}`);
-            const stores = await response.json();
-            
-            suggestionsDiv.innerHTML = '';
-            if (stores.length > 0) {
-                stores.forEach(store => {
-                    const item = document.createElement('a');
-                    item.href = '#';
-                    item.classList.add('list-group-item', 'list-group-item-action');
-                    item.textContent = store.name;
-                    item.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        searchInput.value = store.name;
-                        hiddenInput.value = store.id;
-                        suggestionsDiv.innerHTML = '';
-                        suggestionsDiv.style.display = 'none';
-                    });
-                    suggestionsDiv.appendChild(item);
-                });
-                suggestionsDiv.style.display = 'block';
-            } else {
-                suggestionsDiv.style.display = 'none';
-            }
-        } catch (error) {
-            console.error('Error fetching stores:', error);
-            suggestionsDiv.innerHTML = '';
-            suggestionsDiv.style.display = 'none';
-        }
-    }, 300);
-
-    searchInput.addEventListener('input', (e) => {
-        fetchStores(e.target.value);
-        if (hiddenInput.value) {
-            hiddenInput.value = '';
-        }
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-            suggestionsDiv.innerHTML = '';
-            suggestionsDiv.style.display = 'none';
-        }
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    setupStoreSearch('add_store_search', 'add_store_id_hidden', 'add_store_suggestions');
-});
-</script>
 {% endblock %}

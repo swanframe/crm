@@ -18,8 +18,7 @@
                 data-store-id="{{ revenue.store_id }}"
                 data-revenue-date="{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else '' }}"
                 data-revenue-guests="{{ revenue.revenue_guests if revenue.revenue_guests is not none else '' }}"
-                data-revenue-notes="{{ revenue.revenue_notes if revenue.revenue_notes else '' }}"
-                data-store-name="{{ store_details.store_name if store_details else '' }}"> {# Pass store name for display #}
+                data-revenue-notes="{{ revenue.revenue_notes if revenue.revenue_notes else '' }}">
             <i class="bi bi-pencil-square me-1"></i>{{ _('common.edit') }}
         </button>
         {% endif %}
@@ -37,7 +36,7 @@
 {# Mengubah tata letak menjadi satu kolom penuh untuk Informasi Pendapatan dan Ringkasan #}
 <div class="row">
     <!-- Revenue Details & Summary (sekarang menjadi satu kolom penuh) -->
-    <div class="col-12 mb-4"> {# Mengubah col-lg-5 menjadi col-12 #}
+    <div class="col-12 mb-4">
         <div class="card shadow-sm mb-4">
             <div class="card-header bg-white border-0">
                 <h5 class="mb-0">{{ _('revenues.revenue_information') }}</h5>
@@ -95,7 +94,7 @@
 {# Memindahkan Item Pendapatan ke baris baru dan menjadikannya satu kolom penuh #}
 <div class="row">
     <!-- Revenue Items (Additions & Deductions) (sekarang menjadi satu kolom penuh) -->
-    <div class="col-12 mb-4"> {# Mengubah col-lg-7 menjadi col-12 #}
+    <div class="col-12 mb-4">
         <div class="card shadow-sm">
             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">{{ _('revenues.revenue_items') }}</h5>
@@ -202,12 +201,17 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="edit_revenue_id" name="revenue_id">
+                    <!-- Perubahan: Ganti input teks dengan dropdown select -->
                     <div class="mb-3">
-                        <label for="edit_store_search" class="form-label">{{ _('stores.store_name') }}</label>
-                        <input type="text" class="form-control" id="edit_store_search" 
-                               placeholder="{{ _('revenues.search_store_placeholder') }}" autocomplete="off" required>
-                        <input type="hidden" id="edit_store_id_hidden" name="store_id" required>
-                        <div id="edit_store_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
+                        <label for="edit_store_id" class="form-label">{{ _('stores.store_name') }}</label>
+                        <select class="form-select" id="edit_store_id" name="store_id" required>
+                            <option value="" disabled>{{ _('common.select_placeholder', entity_name=_('sidebar.stores')) }}</option>
+                            {% for store in stores %}
+                            <option value="{{ store.store_id }}" {% if store.store_id == revenue.store_id %} selected {% endif %}>
+                                {{ store.store_name }}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="edit_revenue_date" class="form-label">{{ _('revenues.revenue_date') }}</label>
@@ -333,89 +337,7 @@
         };
     }
 
-    // Function to handle store search and populate suggestions
-    function setupStoreSearch(searchInputId, hiddenInputId, suggestionsDivId) {
-        const searchInput = document.getElementById(searchInputId);
-        const hiddenInput = document.getElementById(hiddenInputId);
-        const suggestionsDiv = document.getElementById(suggestionsDivId);
-
-        if (!searchInput || !hiddenInput || !suggestionsDiv) {
-            console.error('One or more elements not found for store search setup:', { searchInputId, hiddenInputId, suggestionsDivId });
-            return;
-        }
-
-        const fetchStores = debounce(async (query) => {
-            if (query.length < 1) {
-                suggestionsDiv.innerHTML = '';
-                suggestionsDiv.style.display = 'none';
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/stores/search?q=${encodeURIComponent(query)}`);
-                const stores = await response.json();
-                
-                suggestionsDiv.innerHTML = '';
-                if (stores.length > 0) {
-                    stores.forEach(store => {
-                        const item = document.createElement('a');
-                        item.href = '#';
-                        item.classList.add('list-group-item', 'list-group-item-action');
-                        item.textContent = store.name;
-                        item.addEventListener('click', (e) => {
-                            e.preventDefault();
-                            searchInput.value = store.name;
-                            hiddenInput.value = store.id;
-                            suggestionsDiv.innerHTML = '';
-                            suggestionsDiv.style.display = 'none';
-                        });
-                        suggestionsDiv.appendChild(item);
-                    });
-                    suggestionsDiv.style.display = 'block';
-                } else {
-                    suggestionsDiv.style.display = 'none';
-                }
-            } catch (error) {
-                console.error('Error fetching stores:', error);
-                suggestionsDiv.innerHTML = '';
-                suggestionsDiv.style.display = 'none';
-            }
-        }, 300);
-
-        searchInput.addEventListener('input', (e) => {
-            fetchStores(e.target.value);
-            // Clear hidden ID if text input changes (user might be typing a new store)
-            if (hiddenInput.value && searchInput.value !== (searchInput.dataset.selectedStoreName || '')) {
-                hiddenInput.value = '';
-            }
-        });
-
-        // Hide suggestions when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!searchInput.contains(e.target) && !suggestionsDiv.contains(e.target)) {
-                suggestionsDiv.innerHTML = '';
-                suggestionsDiv.style.display = 'none';
-            }
-        });
-
-        // When the modal is hidden, clear the search input and hidden ID
-        const modal = searchInput.closest('.modal');
-        if (modal) {
-            modal.addEventListener('hidden.bs.modal', () => {
-                searchInput.value = '';
-                hiddenInput.value = '';
-                suggestionsDiv.innerHTML = '';
-                suggestionsDiv.style.display = 'none';
-                delete searchInput.dataset.selectedStoreName; // Clear stored name
-            });
-        }
-    }
-
-
     document.addEventListener('DOMContentLoaded', function() {
-        // Setup for Edit Revenue Modal
-        setupStoreSearch('edit_store_search', 'edit_store_id_hidden', 'edit_store_suggestions');
-
         var editRevenueModal = document.getElementById('editRevenueModal');
         editRevenueModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget; // Button that triggered the modal
@@ -424,12 +346,11 @@
             var revenueDate = button.getAttribute('data-revenue-date');
             var revenueGuests = button.getAttribute('data-revenue-guests');
             var revenueNotes = button.getAttribute('data-revenue-notes');
-            var storeName = button.getAttribute('data-store-name');
 
             var modalTitle = editRevenueModal.querySelector('.modal-title');
             var modalBodyInputId = editRevenueModal.querySelector('#edit_revenue_id');
-            var modalBodyInputStoreSearch = editRevenueModal.querySelector('#edit_store_search');
-            var modalBodyInputStoreIdHidden = editRevenueModal.querySelector('#edit_store_id_hidden');
+            // Perubahan: Ambil elemen select baru
+            var modalBodyInputStoreSelect = editRevenueModal.querySelector('#edit_store_id');
             var modalBodyInputDate = editRevenueModal.querySelector('#edit_revenue_date');
             var modalBodyInputGuests = editRevenueModal.querySelector('#edit_revenue_guests');
             var modalBodyTextareaNotes = editRevenueModal.querySelector('#edit_revenue_notes');
@@ -438,10 +359,10 @@
             modalTitle.textContent = "{{ _('revenues.edit_modal_title') }}: ID " + revenueId;
             modalBodyInputId.value = revenueId;
             
-            // Set the search input and hidden ID for store
-            modalBodyInputStoreSearch.value = storeName;
-            modalBodyInputStoreSearch.dataset.selectedStoreName = storeName; // Store original name
-            modalBodyInputStoreIdHidden.value = storeId;
+            // Perubahan: Set nilai select
+            if (modalBodyInputStoreSelect) {
+                modalBodyInputStoreSelect.value = storeId;
+            }
 
             modalBodyInputDate.value = revenueDate;
             modalBodyInputGuests.value = revenueGuests;

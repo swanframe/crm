@@ -1156,7 +1156,7 @@ def list_revenues():
 
     # Kolom yang dapat dicari dan diurutkan
     search_columns = ['revenue_date', 'notes'] # Asumsi pencarian sederhana
-    sortable_columns = ['revenue_id', 'revenue_date', 'store_id', 'guests', 'notes', 'created_at', 'updated_at']
+    sortable_columns = ['revenue_id', 'revenue_date', 'store_id', 'notes', 'created_at', 'updated_at']
 
     # Validasi sort_by untuk mencegah SQL Injection
     if sort_by not in sortable_columns:
@@ -1182,6 +1182,7 @@ def list_revenues():
                            revenues=revenues, 
                            user_map=user_map,
                            store_map=store_map,
+                           stores=stores,
                            page=page,
                            per_page=per_page,
                            total_pages=total_pages,
@@ -1329,7 +1330,7 @@ def view_revenue_detail(revenue_id):
     total_revenue_deductions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Deduction')
     net_revenue = total_revenue_additions - total_revenue_deductions
 
-    all_stores = Store.find_all() # For dropdown in edit modal
+    stores = Store.find_all() # Ambil semua toko
     all_revenue_types = RevenueType.find_all() # For dropdown in add item modal
 
     users = User.find_all()
@@ -1345,7 +1346,7 @@ def view_revenue_detail(revenue_id):
                            net_revenue=net_revenue,
                            created_by_username=created_by_user.username if created_by_user else 'N/A',
                            updated_by_username=updated_by_user.username if updated_by_user else 'N/A',
-                           all_stores=all_stores,
+                           stores=stores, # Kirimkan data toko ke template
                            all_revenue_types=all_revenue_types,
                            user_map=user_map)
 
@@ -1449,32 +1450,6 @@ def delete_revenue_compliment(revenue_id, revenue_compliment_id):
         else:
             flash(get_translation('flash_messages.revenue_compliment_delete_failed'), 'danger')
     return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
-
-
-# NEW: API endpoint for store search (for Revenue Add/Edit Modals)
-@app.route('/api/stores/search')
-@login_required
-def search_stores():
-    """
-    API endpoint to search for stores by name.
-    Returns a JSON list of matching stores (id, name).
-    """
-    query = request.args.get('q', '')
-    # Limit results for performance
-    stores = Store.get_paginated_data(
-        page=1, 
-        per_page=10, # Limit to 10 results for autocomplete
-        search_query=query, 
-        search_columns=['store_name']
-    )
-    
-    results = []
-    for store in stores:
-        results.append({
-            'id': store.store_id,
-            'name': store.store_name
-        })
-    return jsonify(results)
 
 
 # NEW: API endpoint for revenue type search (for Revenue Item Add/Edit Modals)
