@@ -110,7 +110,6 @@
                             <tr>
                                 <th>{{ _('revenue_types.name') }}</th>
                                 <th>{{ _('revenues.amount') }}</th>
-                                <th>{{ _('revenues.notes') }}</th>
                                 <th>{{ _('common.actions') }}</th>
                             </tr>
                         </thead>
@@ -126,7 +125,6 @@
                                     {% endif %}
                                 </td>
                                 <td>{{ "Rp {:,.2f}".format(item.revenue_item_amount) }}</td>
-                                <td>{{ item.revenue_item_notes if item.revenue_item_notes else '-' }}</td>
                                 <td>
                                     <form action="{{ url_for('delete_revenue_item', revenue_id=revenue.revenue_id, revenue_item_id=item.revenue_item_id) }}" method="POST" onsubmit="return confirm('{{ _('common.are_you_sure_delete', entity_name=_('revenues.revenue_item')) }}');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
@@ -278,10 +276,6 @@
                     <div class="mb-3">
                         <label for="revenue_item_amount" class="form-label">{{ _('revenues.amount') }}</label>
                         <input type="number" step="0.01" class="form-control" id="revenue_item_amount" name="revenue_item_amount" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="revenue_item_notes" class="form-label">{{ _('revenues.notes') }}</label>
-                        <textarea class="form-control" id="revenue_item_notes" name="revenue_item_notes" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

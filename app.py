@@ -1365,7 +1365,6 @@ def add_revenue_item(revenue_id):
     if request.method == 'POST':
         revenue_type_id = request.form['revenue_type_id']
         revenue_item_amount = request.form['revenue_item_amount']
-        revenue_item_notes = request.form.get('revenue_item_notes')
 
         if not revenue_type_id or not revenue_item_amount:
             flash(get_translation('flash_messages.revenue_item_all_fields_required'), 'danger')
@@ -1374,8 +1373,7 @@ def add_revenue_item(revenue_id):
                 new_item = RevenueItem(
                     revenue_id=revenue_id,
                     revenue_type_id=int(revenue_type_id),
-                    revenue_item_amount=float(revenue_item_amount),
-                    revenue_item_notes=revenue_item_notes
+                    revenue_item_amount=float(revenue_item_amount)
                 )
                 if new_item.save(g.user.id):
                     flash(get_translation('flash_messages.revenue_item_added_success'), 'success')
