@@ -8,6 +8,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
+- [Screenshots](#screenshots)
 - [Configuration](#configuration)
 - [Database Setup](#database-setup)
 - [Running the Application](#running-the-application)
@@ -119,6 +120,16 @@ To set up the project locally, follow these steps:
 - **Manage Revenue Types**: Go to `/revenue_types` to perform CRUD operations on revenue types (requires Admin or Operator role).
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
+
+## Screenshots
+
+### Dashboard
+![Dashboard App](images/dashboard.png)
+*CRM application main dashboard view*
+
+### Customer Management
+![Customer Management](images/customer-management.png)
+*Customer data management with search feature*
 
 ## Configuration
 
@@ -266,7 +277,92 @@ Configuration is managed through `config.py` and environment variables:
      ```
    - Alternatively, create a script `init_db.py` to automate this process (see [Project Structure](#project-structure) for adding it).
 
-5. **Run Migrations**: Execute the SQL scripts above in your PostgreSQL client.
+5. **Add Dummy Data**:
+   - To populate the database with sample data for testing purposes, execute the following SQL commands in your PostgreSQL client after setting up the schema and Admin user:
+     ```sql
+     -- Data User (password: password123)
+     INSERT INTO users (username, email, password_hash, user_level, created_at, updated_at)
+     VALUES (
+         'admin',
+         'admin@example.com',
+         'pbkdf2:sha256:600000$Mxpf6oFdnqK9Y8dt$fcfdae160ab84c44d85bdc5b2474a14df1826a427cbdbbcaa76051ce72402322',
+         'Admin',
+         CURRENT_TIMESTAMP,
+         CURRENT_TIMESTAMP
+     );
+
+     -- Data Cabang Restoran (5 cabang)
+     INSERT INTO stores (store_name, store_telephone, store_email, store_address, store_whatsapp, created_by, updated_by)
+     VALUES
+     ('Resto Citra', '+6212345678', 'citra@resto.id', 'Jl. Merdeka No.12, Jakarta', '+62812345678', 1, 1),
+     ('Resto Harmoni', '+6223456789', 'harmoni@resto.id', 'Jl. Sudirman Kav. 21, Bandung', '+62823456789', 1, 1),
+     ('Resto Nusantara', '+6234567890', 'nusantara@resto.id', 'Jl. Asia Afrika No. 88, Surabaya', '+62834567890', 1, 1),
+     ('Resto Savory', '+6245678901', 'savory@resto.id', 'Jl. Pahlawan No. 45, Medan', '+62845678901', 1, 1),
+     ('Resto Bahari', '+6256789012', 'bahari@resto.id', 'Jl. Pantai Kuta No. 77, Bali', '+62856789012', 1, 1);
+
+     -- Data Pelanggan (5 pelanggan)
+     INSERT INTO customers (customer_name, customer_code, customer_is_member, customer_telephone, customer_email, created_by, updated_by)
+     VALUES
+     ('Budi Santoso', 'CUST001', TRUE, '+62811223344', 'budi@gmail.com', 1, 1),
+     ('Siti Rahayu', 'CUST002', FALSE, '+62822334455', 'siti@yahoo.co.id', 1, 1),
+     ('Ahmad Wijaya', 'CUST003', TRUE, '+62833445566', 'ahmad@company.com', 1, 1),
+     ('Dewi Lestari', 'CUST004', FALSE, '+62844556677', 'dewi.lestari@gmail.com', 1, 1),
+     ('Rudi Hermawan', 'CUST005', TRUE, '+62855667788', 'rudi_hr@business.id', 1, 1);
+
+     -- Relasi Cabang-Pelanggan (5 relasi)
+     INSERT INTO store_customers (store_id, customer_id)
+     VALUES
+     (1, 1), (1, 2), (2, 3), (3, 4), (4, 5);
+
+     -- Data Tipe Pendapatan (5 tipe)
+     INSERT INTO revenue_types (revenue_type_name, revenue_type_category, created_by, updated_by)
+     VALUES
+     ('Food Sales', 'Addition', 1, 1),
+     ('Beverage Sales', 'Addition', 1, 1),
+     ('Service Charge', 'Addition', 1, 1),
+     ('Employee Meal', 'Deduction', 1, 1),
+     ('Complimentary', 'Deduction', 1, 1);
+
+     -- Data Reservasi (5 reservasi)
+     INSERT INTO reservations (customer_id, store_id, reservation_datetime, reservation_status, reservation_guests, reservation_code, created_by, updated_by)
+     VALUES
+     (1, 1, '2025-08-10 19:00:00', 'Confirmed', 4, 'RESV20250810001', 1, 1),
+     (2, 1, '2025-08-11 20:00:00', 'Pending', 2, 'RESV20250811001', 1, 1),
+     (3, 2, '2025-08-12 18:30:00', 'Confirmed', 6, 'RESV20250812001', 1, 1),
+     (4, 3, '2025-08-13 21:00:00', 'Cancelled', 3, 'RESV20250813001', 1, 1),
+     (5, 4, '2025-08-14 19:30:00', 'Confirmed', 5, 'RESV20250814001', 1, 1);
+
+     -- Data Pendapatan (5 entri pendapatan)
+     INSERT INTO revenues (store_id, revenue_date, revenue_guests, created_by, updated_by)
+     VALUES
+     (1, '2025-08-01', 120, 1, 1),
+     (1, '2025-08-02', 95, 1, 1),
+     (2, '2025-08-01', 80, 1, 1),
+     (3, '2025-08-02', 65, 1, 1),
+     (4, '2025-08-03', 110, 1, 1);
+
+     -- Data Item Pendapatan (5 item)
+     INSERT INTO revenue_items (revenue_id, revenue_type_id, revenue_item_amount, created_by, updated_by)
+     VALUES
+     (1, 1, 8500000.00, 1, 1),
+     (1, 2, 3200000.00, 1, 1),
+     (2, 1, 7200000.00, 1, 1),
+     (3, 3, 1200000.00, 1, 1),
+     (4, 1, 5500000.00, 1, 1);
+
+     -- Data Komplimen (5 komplimen)
+     INSERT INTO revenue_compliments (revenue_id, revenue_compliment_description, revenue_compliment_for, created_by, updated_by)
+     VALUES
+     (1, 'Dessert for birthday', 'Budi Santoso', 1, 1),
+     (2, 'Welcome drink', 'New Customer', 1, 1),
+     (3, 'Appetizer for VIP', 'Company Partner', 1, 1),
+     (4, 'Coffee for complaint', 'Mrs. Dian', 1, 1),
+     (5, 'Anniversary cake', 'Family Celebration', 1, 1);
+     ```
+   - Note: Ensure the Admin user (ID 1) exists before inserting dummy data, as it references `created_by` and `updated_by` fields.
+
+6. **Run Migrations**:
+   - Execute the SQL scripts above in your PostgreSQL client to set up the schema and populate the database with dummy data.
 
 ## Running the Application
 
