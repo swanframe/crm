@@ -1418,7 +1418,6 @@ def add_revenue_compliment(revenue_id):
     if request.method == 'POST':
         revenue_compliment_description = request.form['revenue_compliment_description']
         revenue_compliment_for = request.form.get('revenue_compliment_for')
-        revenue_compliment_notes = request.form.get('revenue_compliment_notes')
 
         if not revenue_compliment_description:
             flash(get_translation('flash_messages.revenue_compliment_description_required'), 'danger')
@@ -1426,8 +1425,7 @@ def add_revenue_compliment(revenue_id):
             new_compliment = RevenueCompliment(
                 revenue_id=revenue_id,
                 revenue_compliment_description=revenue_compliment_description,
-                revenue_compliment_for=revenue_compliment_for,
-                revenue_compliment_notes=revenue_compliment_notes
+                revenue_compliment_for=revenue_compliment_for
             )
             if new_compliment.save(g.user.id):
                 flash(get_translation('flash_messages.revenue_compliment_added_success'), 'success')

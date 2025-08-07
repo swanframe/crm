@@ -161,7 +161,6 @@
                             <tr>
                                 <th>{{ _('revenues.compliment_description') }}</th>
                                 <th>{{ _('revenues.compliment_for') }}</th>
-                                <th>{{ _('revenues.notes') }}</th>
                                 <th>{{ _('common.created_by') }}</th>
                                 <th>{{ _('common.actions') }}</th>
                             </tr>
@@ -171,7 +170,6 @@
                             <tr>
                                 <td>{{ comp.revenue_compliment_description }}</td>
                                 <td>{{ comp.revenue_compliment_for if comp.revenue_compliment_for else '-' }}</td>
-                                <td>{{ comp.revenue_compliment_notes if comp.revenue_compliment_notes else '-' }}</td>
                                 <td>{{ user_map.get(comp.created_by, 'N/A') }}</td>
                                 <td>
                                     <form action="{{ url_for('delete_revenue_compliment', revenue_id=revenue.revenue_id, revenue_compliment_id=comp.revenue_compliment_id) }}" method="POST" onsubmit="return confirm('{{ _('common.are_you_sure_delete', entity_name=_('revenues.compliment')) }}');">
@@ -304,10 +302,6 @@
                     <div class="mb-3">
                         <label for="revenue_compliment_for" class="form-label">{{ _('revenues.compliment_for') }}</label>
                         <input type="text" class="form-control" id="revenue_compliment_for" name="revenue_compliment_for">
-                    </div>
-                    <div class="mb-3">
-                        <label for="revenue_compliment_notes" class="form-label">{{ _('revenues.notes') }}</label>
-                        <textarea class="form-control" id="revenue_compliment_notes" name="revenue_compliment_notes" rows="3"></textarea>
                     </div>
                 </div>
                 <div class="modal-footer">

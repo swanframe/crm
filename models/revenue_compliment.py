@@ -14,7 +14,6 @@ class RevenueCompliment(BaseModel):
 
     def __init__(self, revenue_compliment_id=None, revenue_id=None,
                  revenue_compliment_description=None, revenue_compliment_for=None,
-                 revenue_compliment_notes=None,
                  created_by=None, updated_by=None, created_at=None, updated_at=None):
         """
         Initializes a RevenueCompliment object.
@@ -23,7 +22,6 @@ class RevenueCompliment(BaseModel):
             revenue_id (int, optional): Foreign Key to revenues.revenue_id.
             revenue_compliment_description (str, optional): Short description of the compliment.
             revenue_compliment_for (str, optional): Who the compliment was given for.
-            revenue_compliment_notes (str, optional): Additional notes for the compliment.
             created_by (int, optional): ID of the user who created this record.
             updated_by (int, optional): ID of the user who last updated this record.
             created_at (datetime, optional): Timestamp of record creation.
@@ -34,7 +32,6 @@ class RevenueCompliment(BaseModel):
             revenue_id=revenue_id,
             revenue_compliment_description=revenue_compliment_description,
             revenue_compliment_for=revenue_compliment_for,
-            revenue_compliment_notes=revenue_compliment_notes,
             created_by=created_by,
             updated_by=updated_by,
             created_at=created_at,
