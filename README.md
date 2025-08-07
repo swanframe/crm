@@ -146,9 +146,7 @@ Configuration is managed through `config.py` and environment variables:
          password_hash VARCHAR(255) NOT NULL,
          user_level VARCHAR(20) DEFAULT 'Guest',
          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-         created_by INTEGER REFERENCES users(id),
-         updated_by INTEGER REFERENCES users(id)
+         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
      );
 
      CREATE TABLE stores (
@@ -243,7 +241,6 @@ Configuration is managed through `config.py` and environment variables:
          revenue_compliment_for VARCHAR(100),
          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        )},
          created_by INTEGER REFERENCES users(id),
          updated_by INTEGER REFERENCES users(id)
      );
