@@ -1,6 +1,6 @@
 # CRM System
 
-A simple Customer Relationship Management (CRM) system built with Flask and PostgreSQL. This project allows users to manage customers, stores, user accounts, reservations, and now includes revenue management. It features role-based access control, multi-language support, and a many-to-many relationship between stores and customers.
+A simple Customer Relationship Management (CRM) system built with Flask and PostgreSQL. This project allows users to manage customers, stores, user accounts, reservations, and includes revenue management with monthly revenue targets for each store. It features role-based access control, multi-language support, and a many-to-many relationship between stores and customers.
 
 ## Table of Contents
 
@@ -24,6 +24,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Store Management**: Add, edit, delete stores with pagination, search, and sorting capabilities.
 - **Reservation Management**: Add, edit, delete reservations with pagination, search, and sorting capabilities. Includes customer and store associations.
 - **Revenue Management**: Add, edit, delete revenue entries with pagination, search, and sorting capabilities. Includes revenue types, items, and compliments.
+- **Store Revenue Targets**: Set, view, edit, and delete monthly revenue targets for each store, accessible via store details.
 - **Many-to-Many Relationship**: Manage associations between stores and customers.
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
@@ -50,7 +51,8 @@ crm/
 │   ├── revenue.py          # Revenue model
 │   ├── revenue_type.py     # Revenue Type model
 │   ├── revenue_item.py     # Revenue Item model
-│   └── revenue_compliment.py # Revenue Compliment model
+│   ├── revenue_compliment.py # Revenue Compliment model
+│   └── store_revenue_target.py # Store Revenue Target model
 ├── templates/
 │   ├── base.html           # Base template for all pages
 │   ├── login.html          # Login and registration page
@@ -118,6 +120,7 @@ To set up the project locally, follow these steps:
 - **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role).
 - **Manage Revenues**: Go to `/revenues` to perform CRUD operations on revenue entries (requires Admin, Operator, or Contributor role).
 - **Manage Revenue Types**: Go to `/revenue_types` to perform CRUD operations on revenue types (requires Admin or Operator role).
+- **Manage Revenue Targets**: View, add, edit, and delete monthly revenue targets for a store in the store detail page (`/stores/<store_id>`).
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
 
@@ -255,6 +258,20 @@ Configuration is managed through `config.py` and environment variables:
          created_by INTEGER REFERENCES users(id),
          updated_by INTEGER REFERENCES users(id)
      );
+
+     CREATE TABLE store_revenue_targets (
+         target_id SERIAL PRIMARY KEY,
+         store_id INTEGER NOT NULL REFERENCES stores(store_id) ON DELETE CASCADE,
+         target_month INTEGER NOT NULL CHECK (target_month >= 1 AND target_month <= 12),
+         target_year INTEGER NOT NULL,
+         target_amount NUMERIC(15, 2) NOT NULL,
+         created_by INTEGER REFERENCES users(id),
+         updated_by INTEGER REFERENCES users(id),
+         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+         updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+         -- Menjamin setiap toko hanya punya satu target per bulan/tahun
+         UNIQUE (store_id, target_month, target_year)
+     );
      ```
 4. **Create Initial Admin User**:
    - Since users registered via `/register` get the Guest role by default, you need to create an Admin user manually to access full functionality. First, generate a password hash using the following Python script:
@@ -358,6 +375,15 @@ Configuration is managed through `config.py` and environment variables:
      (3, 'Appetizer for VIP', 'Company Partner', 1, 1),
      (4, 'Coffee for complaint', 'Mrs. Dian', 1, 1),
      (5, 'Anniversary cake', 'Family Celebration', 1, 1);
+
+     -- Dummy Data for Store Revenue Targets (Sample for 5 stores, August 2025)
+     INSERT INTO store_revenue_targets (store_id, target_month, target_year, target_amount, created_by, updated_by)
+     VALUES
+     (1, 8, 2025, 10000000.00, 1, 1),
+     (2, 8, 2025, 8000000.00, 1, 1),
+     (3, 8, 2025, 7000000.00, 1, 1),
+     (4, 8, 2025, 9000000.00, 1, 1),
+     (5, 8, 2025, 12000000.00, 1, 1);
      ```
    - Note: Ensure the Admin user (ID 1) exists before inserting dummy data, as it references `created_by` and `updated_by` fields.
 
@@ -380,6 +406,7 @@ Currently, there are no automated tests. You can manually test the application b
 - Performing CRUD operations on customers, stores, reservations, revenues, revenue types, and users (Admin role required for some actions).
 - Associating customers with stores and vice versa.
 - Creating, editing, and deleting reservations and revenue entries.
+- Setting, viewing, editing, and deleting monthly revenue targets in store details.
 
 ## License
 
