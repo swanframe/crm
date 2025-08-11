@@ -288,7 +288,7 @@
         "edit_modal_title": "Edit Reservation",
         "detail_title": "Reservation Details",
         "reservation_information": "Reservation Information",
-        "search_customer_placeholder": "Search customer by name or code...",
+        "search_customer_placeholder": "Search customer by name, code, or telephone...",
         "reservation_event": "Event",
         "reservation_room": "Room",
         "reservation_guests": "Number of Guests",

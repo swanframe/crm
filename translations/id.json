@@ -288,7 +288,7 @@
         "edit_modal_title": "Edit Reservasi",
         "detail_title": "Detail Reservasi",
         "reservation_information": "Informasi Reservasi",
-        "search_customer_placeholder": "Cari pelanggan berdasarkan nama atau kode...",
+        "search_customer_placeholder": "Cari pelanggan berdasarkan nama, kode, atau telepon...",
         "reservation_event": "Acara",
         "reservation_room": "Ruangan",
         "reservation_guests": "Jumlah Tamu",

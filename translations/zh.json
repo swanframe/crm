@@ -288,7 +288,7 @@
         "edit_modal_title": "编辑预订",
         "detail_title": "预订详情",
         "reservation_information": "预订信息",
-        "search_customer_placeholder": "按姓名或代码搜索客户...",
+        "search_customer_placeholder": "按姓名、代码或电话搜索客户...",
         "reservation_event": "活动",
         "reservation_room": "房间",
         "reservation_guests": "来宾人数",

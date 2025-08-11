@@ -254,7 +254,7 @@
                             const item = document.createElement('a');
                             item.href = '#';
                             item.classList.add('list-group-item', 'list-group-item-action');
-                            item.textContent = `${customer.name} (ID: ${customer.id}, Code: ${customer.code})`;
+                            item.textContent = `${customer.name} (ID: ${customer.id}, Code: ${customer.code}, Tel: ${customer.telephone})`;
                             item.setAttribute('data-customer-id', customer.id);
                             item.setAttribute('data-customer-name', customer.name);
                             item.addEventListener('click', (e) => {

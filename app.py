@@ -1028,7 +1028,7 @@ def search_customers():
         page=1, 
         per_page=10, # Limit to 10 results for autocomplete
         search_query=query, 
-        search_columns=['customer_name', 'customer_code']
+        search_columns=['customer_name', 'customer_code', 'customer_telephone']
     )
     
     results = []
@@ -1036,7 +1036,8 @@ def search_customers():
         results.append({
             'id': customer.customer_id,
             'name': customer.customer_name,
-            'code': customer.customer_code if customer.customer_code else ''
+            'code': customer.customer_code if customer.customer_code else '',
+            'telephone': customer.customer_telephone if customer.customer_telephone else ''
         })
     return jsonify(results)
 
