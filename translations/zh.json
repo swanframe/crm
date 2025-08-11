@@ -145,7 +145,16 @@
         "revenue_compliment_added_success": "赠品添加成功。",
         "revenue_compliment_add_failed": "添加赠品失败。",
         "revenue_compliment_deleted_success": "赠品删除成功。",
-        "revenue_compliment_delete_failed": "删除赠品失败。"
+        "revenue_compliment_delete_failed": "删除赠品失败。",
+        "revenue_target_added_success": "{year} 年 {month} 月的收入目标已成功添加。",
+        "revenue_target_add_failed": "添加收入目标失败。",
+        "revenue_target_updated_success": "{year} 年 {month} 月的收入目标已成功更新。",
+        "revenue_target_update_failed": "更新收入目标失败。",
+        "revenue_target_deleted_success": "收入目标已成功删除。",
+        "revenue_target_delete_failed": "删除收入目标失败。",
+        "target_updated_success": "目标更新成功。",
+        "target_deleted_success": "目标删除成功。",
+        "target_added_success": "目标添加成功。"
     },
     "common": {
         "id": "ID",
@@ -182,7 +191,13 @@
         "clear_search": "清除搜索",
         "sorted_ascending": "升序排列",
         "sorted_descending": "降序排列",
-        "select_placeholder": "选择 {entity_name}"
+        "select_placeholder": "选择 {entity_name}",
+        "update": "更新",
+        "save": "保存",
+        "cancel_button": "取消",
+        "delete_confirmation": "您确定要删除此项吗？",
+        "add": "添加",
+        "not_set": "未设置"
     },
     "profile": {
         "title": "用户资料",
@@ -209,7 +224,22 @@
         "store_information": "商店信息",
         "associated_customers": "关联客户",
         "no_associated_customers": "此商店没有关联客户。",
-        "manage_customers_title": "管理 \"{store_name}\" 的客户"
+        "manage_customers_title": "管理 \"{store_name}\" 的客户",
+        "revenue_targets": "收入目标"
+    },
+    "revenue_targets": {
+        "management_title": "收入目标管理",
+        "monthly_targets": "月度目标",
+        "month": "月份",
+        "year": "年份",
+        "target_amount": "目标金额",
+        "add_modal_title": "添加新收入目标",
+        "edit_modal_title": "编辑收入目标",
+        "no_targets_found": "此店铺未找到收入目标。",
+        "delete_confirmation": "您确定要删除 {year} 年 {month} 月的收入目标吗？",
+        "entity": "收入目标",
+        "modal_title": "营收目标",
+        "modal_help": "请输入所选月份和年份的目标金额。"
     },
     "customers": {
         "management_title": "客户管理",
@@ -304,6 +334,11 @@
         "compliment_description": "描述",
         "compliment_for": "赠予对象",
         "add_compliment_modal_title": "添加赠品",
-        "compliment": "赠品"
+        "compliment": "赠品",
+        "target_achievement": "目标达成情况",
+        "target_amount": "目标金额",
+        "actual_revenue": "实际收入",
+        "target_month": "目标月份",
+        "no_target_set": "未设置目标。"
     }
 }

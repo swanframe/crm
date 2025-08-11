@@ -88,6 +88,64 @@
                 </ul>
             </div>
         </div>
+        
+        <!-- NEW: Target Achievement Section -->
+        {% if revenue_target %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">{{ _('revenues.target_achievement') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{{ _('revenues.target_amount') }}:</span>
+                            <strong>Rp {{ "{:,.2f}".format(revenue_target.target_amount) }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-3">
+                            <span>{{ _('revenues.actual_revenue') }}:</span>
+                            <strong>Rp {{ "{:,.2f}".format(net_revenue) }}</strong>
+                        </div>
+                        <div class="progress" style="height: 30px;">
+                            <div class="progress-bar {% if achievement_percentage >= 100 %}bg-success{% else %}bg-primary{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ achievement_percentage }}%;"
+                                 aria-valuenow="{{ achievement_percentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                                {{ achievement_percentage|round(2) }}%
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{{ _('revenues.target_month') }}:</span>
+                            <strong>{{ revenue_target.target_month }}/{{ revenue_target.target_year }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{{ _('common.created_by') }}:</span>
+                            <strong>{{ user_map.get(revenue_target.created_by, 'N/A') }}</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>{{ _('common.updated_by') }}:</span>
+                            <strong>{{ user_map.get(revenue_target.updated_by, 'N/A') }}</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">{{ _('revenues.target_achievement') }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    {{ _('revenues.no_target_set') }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -323,6 +381,19 @@
     }
     .badge.bg-danger-light {
         background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+    
+    /* Style for achievement progress bar */
+    .progress {
+        height: 30px;
+        border-radius: 10px;
+    }
+    .progress-bar {
+        font-size: 14px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>
 

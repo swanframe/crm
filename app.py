@@ -11,6 +11,8 @@ from models.revenue import Revenue # NEW: Import Revenue model
 from models.revenue_type import RevenueType # NEW: Import RevenueType model
 from models.revenue_item import RevenueItem # NEW: Import RevenueItem model
 from models.revenue_compliment import RevenueCompliment # NEW: Import RevenueCompliment model
+# NEW: Import StoreRevenueTarget model
+from models.store_revenue_target import StoreRevenueTarget
 from utilities.security import check_hashed_password, hash_password
 from utilities.localization import init_app_localization, get_translation
 import math
@@ -469,7 +471,8 @@ def delete_store(store_id):
 @role_required(['Admin', 'Operator', 'Contributor']) # Admin, Operator, Contributor can view store details
 def view_store_detail(store_id):
     """
-    Displays full details of a store with paginated associated customers.
+    Displays full details of a store with paginated associated customers
+    and its revenue targets.
     """
     store = Store.find_by_id(store_id)
     if not store:
@@ -486,6 +489,24 @@ def view_store_detail(store_id):
     total_associated_customers_count = StoreCustomer.count_customers_for_store(store_id)
     total_pages_customers = math.ceil(total_associated_customers_count / per_page_customers)
 
+    # --- NEW: Revenue Target Logic ---
+    # Get the year from query parameter, default to current year
+    current_year = datetime.datetime.now().year
+    target_year = request.args.get('target_year', current_year, type=int)
+    
+    # Fetch all targets for the selected year
+    revenue_targets_raw = StoreRevenueTarget.find_all_for_store_by_year(store_id, target_year)
+    
+    # Create a dictionary of targets keyed by month for easy lookup in the template
+    revenue_targets = {target.target_month: target for target in revenue_targets_raw}
+    
+    # Create a list of available years for the dropdown (e.g., last 5 years to next 5 years)
+    available_years = range(current_year - 5, current_year + 6)
+    # --- END NEW ---
+
+    users = User.find_all()
+    user_map = {user.id: user.username for user in users}
+
     return render_template('store_detail.html', 
                            store=store, 
                            created_by_username=created_by_user.username if created_by_user else 'N/A',
@@ -493,7 +514,13 @@ def view_store_detail(store_id):
                            associated_customers=associated_customers,
                            page_customers=page_customers,
                            per_page_customers=per_page_customers,
-                           total_pages_customers=total_pages_customers)
+                           total_pages_customers=total_pages_customers,
+                           # --- NEW: Pass target data to template ---
+                           revenue_targets=revenue_targets,
+                           target_year=target_year,
+                           available_years=available_years,
+                           user_map=user_map # Pass user map for created_by/updated_by on targets
+                           )
 
 
 # --- Customer Management Routes ---
@@ -1299,7 +1326,8 @@ def delete_revenue(revenue_id):
 @role_required(['Admin', 'Operator', 'Contributor'])
 def view_revenue_detail(revenue_id):
     """
-    Displays full details of a revenue entry, including its items and compliments.
+    Displays full details of a revenue entry, including its items, compliments,
+    and achievement against the target.
     """
     revenue = Revenue.find_by_id(revenue_id)
     if not revenue:
@@ -1330,6 +1358,18 @@ def view_revenue_detail(revenue_id):
     total_revenue_deductions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Deduction')
     net_revenue = total_revenue_additions - total_revenue_deductions
 
+    # --- NEW: Target Achievement Logic ---
+    revenue_target = None
+    achievement_percentage = 0
+    if revenue.revenue_date:
+        target_month = revenue.revenue_date.month
+        target_year = revenue.revenue_date.year
+        revenue_target = StoreRevenueTarget.find_by_store_and_date(revenue.store_id, target_year, target_month)
+        
+        if revenue_target and revenue_target.target_amount > 0:
+            achievement_percentage = (net_revenue / revenue_target.target_amount) * 100
+    # --- END NEW ---
+
     stores = Store.find_all() # Ambil semua toko
     all_revenue_types = RevenueType.find_all() # For dropdown in add item modal
 
@@ -1348,7 +1388,11 @@ def view_revenue_detail(revenue_id):
                            updated_by_username=updated_by_user.username if updated_by_user else 'N/A',
                            stores=stores, # Kirimkan data toko ke template
                            all_revenue_types=all_revenue_types,
-                           user_map=user_map)
+                           user_map=user_map,
+                           # --- NEW: Pass target data to template ---
+                           revenue_target=revenue_target,
+                           achievement_percentage=achievement_percentage
+                           )
 
 # --- NEW: Revenue Item Management Routes (Nested under Revenue Detail) ---
 @app.route('/revenues/<int:revenue_id>/items/add', methods=['POST'])
@@ -1450,6 +1494,79 @@ def delete_revenue_compliment(revenue_id, revenue_compliment_id):
         else:
             flash(get_translation('flash_messages.revenue_compliment_delete_failed'), 'danger')
     return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+
+# --- NEW: Store Revenue Target Management Routes ---
+@app.route('/stores/<int:store_id>/targets/add', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def add_store_target(store_id):
+    """
+    Adds or updates a revenue target for a specific store, month, and year.
+    This function handles both creation of new targets and updating existing ones.
+    """
+    # Verify that the store exists
+    store = Store.find_by_id(store_id)
+    if not store:
+        flash(get_translation('flash_messages.store_not_found'), 'danger')
+        return redirect(url_for('list_stores'))
+
+    try:
+        # Ambil data dari form yang diperbarui
+        target_month = int(request.form['target_month'])
+        target_year = int(request.form['target_year'])
+        target_amount = float(request.form['target_amount'])
+    except (KeyError, ValueError):
+        flash(get_translation('flash_messages.target_invalid_input'), 'danger')
+        return redirect(url_for('view_store_detail', store_id=store_id))
+
+    # Check if a target for this month and year already exists
+    existing_target = StoreRevenueTarget.find_by_store_and_date(store_id, target_year, target_month)
+
+    if existing_target:
+        # If target exists, update it
+        existing_target.target_amount = target_amount
+        if existing_target.save(g.user.id):
+            flash(get_translation('flash_messages.target_updated_success'), 'success')
+        else:
+            flash(get_translation('flash_messages.target_update_failed'), 'danger')
+    else:
+        # If target does not exist, create a new one
+        new_target = StoreRevenueTarget(
+            store_id=store_id,
+            target_month=target_month,
+            target_year=target_year,
+            target_amount=target_amount
+        )
+        if new_target.save(g.user.id):
+            flash(get_translation('flash_messages.target_added_success'), 'success')
+        else:
+            flash(get_translation('flash_messages.target_add_failed'), 'danger')
+    
+    # Redirect back to the store detail page, preserving the selected year
+    return redirect(url_for('view_store_detail', store_id=store_id, target_year=target_year))
+
+@app.route('/stores/<int:store_id>/targets/delete/<int:target_id>', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator'])
+def delete_store_target(store_id, target_id):
+    """
+    Deletes a specific revenue target.
+    """
+    target = StoreRevenueTarget.find_by_id(target_id)
+    
+    # Ensure the target belongs to the correct store before deleting
+    if not target or target.store_id != store_id:
+        flash(get_translation('flash_messages.target_not_found'), 'danger')
+    else:
+        if target.delete():
+            flash(get_translation('flash_messages.target_deleted_success'), 'success')
+        else:
+            flash(get_translation('flash_messages.target_delete_failed'), 'danger')
+    
+    # Redirect back to the store detail page, preserving the year from the form
+    target_year = request.form.get('target_year', datetime.datetime.now().year)
+    return redirect(url_for('view_store_detail', store_id=store_id, target_year=target_year))
 
 
 # NEW: API endpoint for revenue type search (for Revenue Item Add/Edit Modals)

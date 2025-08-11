@@ -145,7 +145,16 @@
         "revenue_compliment_added_success": "Compliment added successfully.",
         "revenue_compliment_add_failed": "Failed to add compliment.",
         "revenue_compliment_deleted_success": "Compliment deleted successfully.",
-        "revenue_compliment_delete_failed": "Failed to delete compliment."
+        "revenue_compliment_delete_failed": "Failed to delete compliment.",
+        "revenue_target_added_success": "Revenue target for {month} {year} added successfully.",
+        "revenue_target_add_failed": "Failed to add revenue target.",
+        "revenue_target_updated_success": "Revenue target for {month} {year} updated successfully.",
+        "revenue_target_update_failed": "Failed to update revenue target.",
+        "revenue_target_deleted_success": "Revenue target deleted successfully.",
+        "revenue_target_delete_failed": "Failed to delete revenue target.",
+        "target_updated_success": "Target updated successfully.",
+        "target_deleted_success": "Target deleted successfully.",
+        "target_added_success": "Target added successfully."
     },
     "common": {
         "id": "ID",
@@ -182,7 +191,13 @@
         "clear_search": "Clear Search",
         "sorted_ascending": "Sorted Ascending",
         "sorted_descending": "Sorted Descending",
-        "select_placeholder": "Select a {entity_name}"
+        "select_placeholder": "Select a {entity_name}",
+        "update": "Update",
+        "save": "Save",
+        "cancel_button": "Cancel",
+        "delete_confirmation": "Are you sure you want to delete this item?",
+        "add": "Add",
+        "not_set": "Not set"
     },
     "profile": {
         "title": "User Profile",
@@ -209,7 +224,22 @@
         "store_information": "Store Information",
         "associated_customers": "Associated Customers",
         "no_associated_customers": "No customers associated with this store.",
-        "manage_customers_title": "Manage Customers for \"{store_name}\""
+        "manage_customers_title": "Manage Customers for \"{store_name}\"",
+        "revenue_targets": "Revenue Targets"
+    },
+    "revenue_targets": {
+        "management_title": "Revenue Targets Management",
+        "monthly_targets": "Monthly Targets",
+        "month": "Month",
+        "year": "Year",
+        "target_amount": "Target Amount",
+        "add_modal_title": "Add New Revenue Target",
+        "edit_modal_title": "Edit Revenue Target",
+        "no_targets_found": "No revenue targets found for this store.",
+        "delete_confirmation": "Are you sure you want to delete the revenue target for {month} {year}?",
+        "entity": "Revenue Target",
+        "modal_title": "Revenue Target",
+        "modal_help": "Enter the target amount for the selected month and year."
     },
     "customers": {
         "management_title": "Customers Management",
@@ -304,6 +334,11 @@
         "compliment_description": "Description",
         "compliment_for": "For",
         "add_compliment_modal_title": "Add Compliment",
-        "compliment": "Compliment"
+        "compliment": "Compliment",
+        "target_achievement": "Target Achievement",
+        "target_amount": "Target Amount",
+        "actual_revenue": "Actual Revenue",
+        "target_month": "Target Month",
+        "no_target_set": "No target has been set."
     }
 }

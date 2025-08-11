@@ -145,7 +145,16 @@
         "revenue_compliment_added_success": "Komplimen berhasil ditambahkan.",
         "revenue_compliment_add_failed": "Gagal menambahkan komplimen.",
         "revenue_compliment_deleted_success": "Komplimen berhasil dihapus.",
-        "revenue_compliment_delete_failed": "Gagal menghapus komplimen."
+        "revenue_compliment_delete_failed": "Gagal menghapus komplimen.",
+        "revenue_target_added_success": "Target pendapatan untuk bulan {month} tahun {year} berhasil ditambahkan.",
+        "revenue_target_add_failed": "Gagal menambahkan target pendapatan.",
+        "revenue_target_updated_success": "Target pendapatan untuk bulan {month} tahun {year} berhasil diperbarui.",
+        "revenue_target_update_failed": "Gagal memperbarui target pendapatan.",
+        "revenue_target_deleted_success": "Target pendapatan berhasil dihapus.",
+        "revenue_target_delete_failed": "Gagal menghapus target pendapatan.",
+        "target_updated_success": "Target berhasil diperbarui.",
+        "target_deleted_success": "Target berhasil dihapus.",
+        "target_added_success": "Target berhasil ditambahkan."
     },
     "common": {
         "id": "ID",
@@ -182,7 +191,13 @@
         "clear_search": "Bersihkan Pencarian",
         "sorted_ascending": "Diurutkan Menaik",
         "sorted_descending": "Diurutkan Menurun",
-        "select_placeholder": "Pilih {entity_name}"
+        "select_placeholder": "Pilih {entity_name}",
+        "update": "Perbarui",
+        "save": "Simpan",
+        "cancel_button": "Batal",
+        "delete_confirmation": "Apakah Anda yakin ingin menghapus item ini?",
+        "add": "Tambah",
+        "not_set": "Belum diatur"
     },
     "profile": {
         "title": "Profil Pengguna",
@@ -209,7 +224,22 @@
         "store_information": "Informasi Toko",
         "associated_customers": "Pelanggan Terkait",
         "no_associated_customers": "Tidak ada pelanggan yang terkait dengan toko ini.",
-        "manage_customers_title": "Kelola Pelanggan untuk \"{store_name}\""
+        "manage_customers_title": "Kelola Pelanggan untuk \"{store_name}\"",
+        "revenue_targets": "Target Pendapatan"
+    },
+    "revenue_targets": {
+        "management_title": "Manajemen Target Pendapatan",
+        "monthly_targets": "Target Bulanan",
+        "month": "Bulan",
+        "year": "Tahun",
+        "target_amount": "Jumlah Target",
+        "add_modal_title": "Tambah Target Pendapatan Baru",
+        "edit_modal_title": "Edit Target Pendapatan",
+        "no_targets_found": "Tidak ada target pendapatan yang ditemukan untuk toko ini.",
+        "delete_confirmation": "Apakah Anda yakin ingin menghapus target pendapatan untuk bulan {month} tahun {year}?",
+        "entity": "Target Pendapatan",
+        "modal_title": "Target Pendapatan",
+        "modal_help": "Masukkan jumlah target untuk bulan dan tahun yang dipilih."
     },
     "customers": {
         "management_title": "Manajemen Pelanggan",
@@ -304,6 +334,11 @@
         "compliment_description": "Deskripsi",
         "compliment_for": "Untuk",
         "add_compliment_modal_title": "Tambah Komplimen",
-        "compliment": "Komplimen"
+        "compliment": "Komplimen",
+        "target_achievement": "Pencapaian Target",
+        "target_amount": "Jumlah Target",
+        "actual_revenue": "Pendapatan Aktual",
+        "target_month": "Bulan Target",
+        "no_target_set": "Target belum ditetapkan."
     }
 }
