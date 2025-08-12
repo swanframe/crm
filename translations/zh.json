@@ -160,7 +160,9 @@
         "whatsapp_sent_success": "WhatsApp 通知已成功发送。",
         "whatsapp_sent_failed": "发送 WhatsApp 通知失败。原因：{reason}",
         "whatsapp_format_failed": "创建 WhatsApp 消息格式失败。",
-        "whatsapp_no_target": "发送失败，此商店的 WhatsApp 号码未配置。"
+        "whatsapp_no_target": "发送失败，此商店的 WhatsApp 号码未配置。",
+        "whatsapp_revenue_sent_success": "收入报告已成功发送至 WhatsApp。",
+        "whatsapp_revenue_sent_failed": "发送收入报告失败。原因：{reason}"
     },
     "common": {
         "id": "ID",
@@ -233,7 +235,13 @@
         "cannot_send_no_number": "无法发送，此商店的 WhatsApp 号码尚未配置。",
         "greeting": "收到新预订！",
         "intro": "以下是通过我们系统创建的预订详情",
-        "thank_you": "谢谢您的关注。"
+        "thank_you": "谢谢您的关注。",
+        "send_button": "通过 WhatsApp 发送",
+        "send_revenue_report": "通过 WhatsApp 发送收入报告",
+        "revenue_report_title": "收入报告",
+        "revenue_summary": "收入摘要",
+        "revenue_items_list": "收入项目列表",
+        "revenue_compliments_list": "赠品列表"
     },
     "stores": {
         "management_title": "商店管理",

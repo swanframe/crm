@@ -15,7 +15,7 @@ from models.store_revenue_target import StoreRevenueTarget # NEW: Import StoreRe
 from models.setting import Setting # NEW: Import Setting model
 from utilities.security import check_hashed_password, hash_password
 from utilities.localization import init_app_localization, get_translation
-from utilities.whatsapp_sender import send_whatsapp_message, format_reservation_message # NEW: Import WhatsApp sender
+from utilities.whatsapp_sender import send_whatsapp_message, format_reservation_message, format_revenue_message # NEW: Tambahkan format_revenue_message
 import math
 import datetime
 from psycopg2 import errors
@@ -1382,18 +1382,19 @@ def view_revenue_detail(revenue_id):
     store_details = revenue.get_store_details()
 
     # Fetch all revenue items for this revenue
-    revenue_items = RevenueItem._execute_query(
+    revenue_items_raw = RevenueItem._execute_query(
         "SELECT * FROM revenue_items WHERE revenue_id = %s ORDER BY created_at ASC",
         (revenue_id,), fetch_all=True
     )
-    revenue_items = [RevenueItem(**item) for item in revenue_items] if revenue_items else []
+    revenue_items = [RevenueItem(**item) for item in revenue_items_raw] if revenue_items_raw else []
 
     # Fetch all revenue compliments for this revenue
-    revenue_compliments = RevenueCompliment._execute_query(
+    revenue_compliments_raw = RevenueCompliment._execute_query(
         "SELECT * FROM revenue_compliments WHERE revenue_id = %s ORDER BY created_at ASC",
         (revenue_id,), fetch_all=True
     )
-    revenue_compliments = [RevenueCompliment(**comp) for comp in revenue_compliments] if revenue_compliments else []
+    revenue_compliments = [RevenueCompliment(**comp) for comp in revenue_compliments_raw] if revenue_compliments_raw else []
+
 
     # Calculate total revenue
     total_revenue_additions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Addition')
@@ -1435,6 +1436,54 @@ def view_revenue_detail(revenue_id):
                            revenue_target=revenue_target,
                            achievement_percentage=achievement_percentage
                            )
+
+# --- NEW: Route to send Revenue report to WhatsApp ---
+@app.route('/revenues/<int:revenue_id>/send_whatsapp', methods=['POST'])
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def send_revenue_whatsapp(revenue_id):
+    """
+    Sends a formatted revenue report to the store's WhatsApp number.
+    """
+    revenue = Revenue.find_by_id(revenue_id)
+    if not revenue:
+        flash(get_translation('flash_messages.revenue_not_found'), 'danger')
+        return redirect(url_for('list_revenues'))
+
+    store = revenue.get_store_details()
+    if not store or not store.store_whatsapp:
+        flash(get_translation('flash_messages.whatsapp_no_target'), 'warning')
+        return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+    # Fetch items and compliments needed for the message, similar to view_revenue_detail
+    revenue_items_raw = RevenueItem._execute_query(
+        "SELECT * FROM revenue_items WHERE revenue_id = %s ORDER BY created_at ASC",
+        (revenue_id,), fetch_all=True
+    )
+    revenue_items = [RevenueItem(**item) for item in revenue_items_raw] if revenue_items_raw else []
+
+    revenue_compliments_raw = RevenueCompliment._execute_query(
+        "SELECT * FROM revenue_compliments WHERE revenue_id = %s ORDER BY created_at ASC",
+        (revenue_id,), fetch_all=True
+    )
+    revenue_compliments = [RevenueCompliment(**comp) for comp in revenue_compliments_raw] if revenue_compliments_raw else []
+
+    # Format the message using the new function
+    message = format_revenue_message(revenue, revenue_items, revenue_compliments)
+    if not message:
+        flash(get_translation('flash_messages.whatsapp_format_failed'), 'danger')
+        return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+
+    # Send the message
+    result = send_whatsapp_message(store.store_whatsapp, message)
+    if result and result.get('status'):
+        flash(get_translation('flash_messages.whatsapp_revenue_sent_success'), 'success')
+    else:
+        reason = result.get('reason', 'Unknown error')
+        flash(get_translation('flash_messages.whatsapp_revenue_sent_failed', reason=reason), 'danger')
+
+    return redirect(url_for('view_revenue_detail', revenue_id=revenue_id))
+# --- END NEW ---
 
 # --- NEW: Revenue Item Management Routes (Nested under Revenue Detail) ---
 @app.route('/revenues/<int:revenue_id>/items/add', methods=['POST'])

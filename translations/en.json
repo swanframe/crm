@@ -160,7 +160,9 @@
         "whatsapp_sent_success": "WhatsApp notification sent successfully.",
         "whatsapp_sent_failed": "Failed to send WhatsApp notification. Reason: {reason}",
         "whatsapp_format_failed": "Failed to create WhatsApp message format.",
-        "whatsapp_no_target": "Failed to send, WhatsApp number for this store is not configured."
+        "whatsapp_no_target": "Failed to send, WhatsApp number for this store is not configured.",
+        "whatsapp_revenue_sent_success": "Revenue report sent to WhatsApp successfully.",
+        "whatsapp_revenue_sent_failed": "Failed to send revenue report. Reason: {reason}"
     },
     "common": {
         "id": "ID",
@@ -233,7 +235,13 @@
         "cannot_send_no_number": "Cannot send, the WhatsApp number for this store has not been configured.",
         "greeting": "New Reservation Received!",
         "intro": "Here are the details of the reservation that has been made through our system",
-        "thank_you": "Thank you for your attention."
+        "thank_you": "Thank you for your attention.",
+        "send_button": "Send via WhatsApp",
+        "send_revenue_report": "Send Revenue Report via WhatsApp",
+        "revenue_report_title": "Revenue Report",
+        "revenue_summary": "Revenue Summary",
+        "revenue_items_list": "Revenue Items List",
+        "revenue_compliments_list": "Compliments List"
     },
     "stores": {
         "management_title": "Stores Management",

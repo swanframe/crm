@@ -160,7 +160,9 @@
         "whatsapp_sent_success": "Notifikasi WhatsApp berhasil dikirim.",
         "whatsapp_sent_failed": "Gagal mengirim notifikasi WhatsApp. Alasan: {reason}",
         "whatsapp_format_failed": "Gagal membuat format pesan WhatsApp.",
-        "whatsapp_no_target": "Gagal mengirim, nomor WhatsApp untuk toko ini tidak diatur."
+        "whatsapp_no_target": "Gagal mengirim, nomor WhatsApp untuk toko ini tidak diatur.",
+        "whatsapp_revenue_sent_success": "Laporan pendapatan berhasil dikirim ke WhatsApp.",
+        "whatsapp_revenue_sent_failed": "Gagal mengirim laporan pendapatan. Alasan: {reason}"
     },
     "common": {
         "id": "ID",
@@ -233,7 +235,13 @@
         "cannot_send_no_number": "Tidak bisa mengirim, nomor WhatsApp untuk toko ini belum diatur.",
         "greeting": "Reservasi Baru Diterima!",
         "intro": "Berikut adalah detail reservasi yang telah dibuat melalui sistem kami",
-        "thank_you": "Terima kasih atas perhatian Anda."
+        "thank_you": "Terima kasih atas perhatian Anda.",
+        "send_button": "Kirim via WhatsApp",
+        "send_revenue_report": "Kirim Laporan Pendapatan via WhatsApp",
+        "revenue_report_title": "Laporan Pendapatan",
+        "revenue_summary": "Ringkasan Pendapatan",
+        "revenue_items_list": "Daftar Item Pendapatan",
+        "revenue_compliments_list": "Daftar Komplimen"
     },
     "stores": {
         "management_title": "Manajemen Toko",

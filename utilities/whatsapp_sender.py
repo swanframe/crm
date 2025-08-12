@@ -87,3 +87,59 @@ def format_reservation_message(reservation):
     except Exception as e:
         print(f"Error formatting reservation message: {e}")
         return None
+
+# --- NEW: Function to format Revenue report ---
+def format_revenue_message(revenue, revenue_items, revenue_compliments):
+    """
+    Formats the revenue details into a user-friendly WhatsApp message.
+    """
+    try:
+        store = revenue.get_store_details()
+        if not store:
+            return None
+
+        # Calculate totals
+        total_additions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Addition')
+        total_deductions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Deduction')
+        net_revenue = total_additions - total_deductions
+
+        # --- Message Header ---
+        message = (
+            f"*{get_translation('whatsapp.revenue_report_title')}*\n\n"
+            f"*{get_translation('stores.store_name')}:* {store.store_name}\n"
+            f"*{get_translation('revenues.revenue_date')}:* {revenue.revenue_date.strftime('%d %B %Y')}\n"
+            f"*{get_translation('revenues.guests')}:* {revenue.revenue_guests if revenue.revenue_guests is not None else '-'}\n"
+            f"*{get_translation('revenues.notes')}:* {revenue.revenue_notes if revenue.revenue_notes else '-'}\n\n"
+        )
+
+        # --- Summary Section ---
+        message += (
+            f"*{get_translation('whatsapp.revenue_summary')}*\n"
+            f"_{get_translation('revenues.total_additions')}: Rp {total_additions:,.2f}_\n"
+            f"_{get_translation('revenues.total_deductions')}: Rp {total_deductions:,.2f}_\n"
+            f"*{get_translation('revenues.net_revenue')}: Rp {net_revenue:,.2f}*\n\n"
+        )
+
+        # --- Revenue Items Section ---
+        if revenue_items:
+            message += f"*{get_translation('whatsapp.revenue_items_list')}*\n"
+            for item in revenue_items:
+                category_symbol = "✅" if item.get_revenue_type_category() == 'Addition' else "❌"
+                message += f"- {category_symbol} {item.get_revenue_type_name()}: Rp {item.revenue_item_amount:,.2f}\n"
+            message += "\n"
+
+        # --- Compliments Section ---
+        if revenue_compliments:
+            message += f"*{get_translation('whatsapp.revenue_compliments_list')}*\n"
+            for comp in revenue_compliments:
+                comp_for = comp.revenue_compliment_for if comp.revenue_compliment_for else '-'
+                message += f"- {comp.revenue_compliment_description} ({get_translation('revenues.compliment_for')}: {comp_for})\n"
+            message += "\n"
+
+        message += get_translation('whatsapp.thank_you')
+
+        return message
+    except Exception as e:
+        print(f"Error formatting revenue message: {e}")
+        return None
+# --- END NEW ---
