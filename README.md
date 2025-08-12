@@ -29,6 +29,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
 - **Secure Password Hashing**: Uses Werkzeug for password security.
+- **WhatsApp Notification Integration** (Optional): When adding or editing a reservation, users can optionally check a box to send reservation details to the store's WhatsApp number (stored in the `store_whatsapp` column of the stores table). If the store's WhatsApp number is not set, the message cannot be sent. The API token (for services like Fonnte) is securely stored in the database and can only be edited by Admin users via a dedicated settings page. This feature is optional and non-essential; the application functions fully without it.
 
 ## Project Structure
 
@@ -52,7 +53,8 @@ crm/
 │   ├── revenue_type.py     # Revenue Type model
 │   ├── revenue_item.py     # Revenue Item model
 │   ├── revenue_compliment.py # Revenue Compliment model
-│   └── store_revenue_target.py # Store Revenue Target model
+│   ├── store_revenue_target.py # Store Revenue Target model
+│   └── setting.py          # Settings model (for storing key-value pairs like WhatsApp API token)
 ├── templates/
 │   ├── base.html           # Base template for all pages
 │   ├── login.html          # Login and registration page
@@ -71,10 +73,12 @@ crm/
 │   ├── reservation_detail.html # Reservation detail page
 │   ├── revenue_types.html  # Revenue Type management page
 │   ├── revenues.html       # Revenue management page
-│   └── revenue_detail.html # Revenue detail page
+│   ├── revenue_detail.html # Revenue detail page
+│   └── whatsapp_settings.html # WhatsApp settings page (Admin-only)
 ├── utilities/
 │   ├── security.py         # Password hashing utilities
-│   └── localization.py     # Multi-language translation utilities
+│   ├── localization.py     # Multi-language translation utilities
+│   └── whatsapp_sender.py  # WhatsApp message sending utilities (using external API like Fonnte)
 └── translations/
     ├── en.json             # English translations
     ├── id.json             # Indonesian translations
@@ -117,12 +121,13 @@ To set up the project locally, follow these steps:
 - **Dashboard**: After login, users are redirected to `/dashboard` for an overview.
 - **Manage Customers**: Go to `/customers` to perform CRUD operations on customers (requires Admin, Operator, or Contributor role).
 - **Manage Stores**: Go to `/stores` to perform CRUD operations on stores (requires Admin, Operator, or Contributor role).
-- **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role).
+- **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role). When adding or editing a reservation, an optional checkbox allows sending details to the store's WhatsApp number (if configured).
 - **Manage Revenues**: Go to `/revenues` to perform CRUD operations on revenue entries (requires Admin, Operator, or Contributor role).
 - **Manage Revenue Types**: Go to `/revenue_types` to perform CRUD operations on revenue types (requires Admin or Operator role).
 - **Manage Revenue Targets**: View, add, edit, and delete monthly revenue targets for a store in the store detail page (`/stores/<store_id>`).
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
+- **WhatsApp Settings** (Optional): Admins can configure the WhatsApp API token (e.g., for Fonnte) at `/whatsapp_settings`. This enables the optional WhatsApp notification feature in reservation forms. If not configured, the checkbox in reservation forms will be disabled or ineffective.
 
 ## Screenshots
 
@@ -141,6 +146,7 @@ Configuration is managed through `config.py` and environment variables:
 - **SECRET_KEY**: Used for session management and security.
 - **DATABASE_URL**: PostgreSQL connection string (e.g., `postgresql://postgres:your_password@localhost:5432/crm_db`).
 - **FLASK_DEBUG**: Set to `1` to enable debug mode.
+- **WhatsApp API Token** (Optional): Stored securely in the database (via the `settings` table) rather than `.env`. Only Admins can edit this via `/whatsapp_settings`. Used for sending reservation notifications to store WhatsApp numbers.
 
 ## Database Setup
 
@@ -269,8 +275,14 @@ Configuration is managed through `config.py` and environment variables:
          updated_by INTEGER REFERENCES users(id),
          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-         -- Menjamin setiap toko hanya punya satu target per bulan/tahun
+         -- Ensures each store has only one target per month/year
          UNIQUE (store_id, target_month, target_year)
+     );
+
+     CREATE TABLE settings (
+         setting_key VARCHAR(255) PRIMARY KEY,
+         setting_value TEXT,
+         updated_at TIMESTAMPTZ DEFAULT NOW()
      );
      ```
 4. **Create Initial Admin User**:
@@ -384,8 +396,12 @@ Configuration is managed through `config.py` and environment variables:
      (3, 8, 2025, 7000000.00, 1, 1),
      (4, 8, 2025, 9000000.00, 1, 1),
      (5, 8, 2025, 12000000.00, 1, 1);
+
+     -- Optional: Insert a sample WhatsApp API token (for testing; replace with your actual token)
+     INSERT INTO settings (setting_key, setting_value)
+     VALUES ('whatsapp_api_token', 'your_sample_fonnte_token_here');
      ```
-   - Note: Ensure the Admin user (ID 1) exists before inserting dummy data, as it references `created_by` and `updated_by` fields.
+   - Note: Ensure the Admin user (ID 1) exists before inserting dummy data, as it references `created_by` and `updated_by` fields. The WhatsApp token is optional and can be set via the app interface later.
 
 6. **Run Migrations**:
    - Execute the SQL scripts above in your PostgreSQL client to set up the schema and populate the database with dummy data.
@@ -407,6 +423,7 @@ Currently, there are no automated tests. You can manually test the application b
 - Associating customers with stores and vice versa.
 - Creating, editing, and deleting reservations and revenue entries.
 - Setting, viewing, editing, and deleting monthly revenue targets in store details.
+- (Optional) Configuring the WhatsApp API token as an Admin, then testing the checkbox in reservation forms to send notifications (requires a valid token and store WhatsApp number).
 
 ## License
 
