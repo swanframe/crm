@@ -65,8 +65,8 @@ def format_reservation_message(reservation):
         # Using translation keys for a multilingual message template
         message = (
             f"*{get_translation('whatsapp.greeting')}*\n\n"
-            f"{get_translation('whatsapp.intro')}:\n\n"
             f"*{get_translation('customers.customer_name')}:* {customer.customer_name}\n"
+            f"*{get_translation('common.telephone')}:* {customer.customer_telephone}\n"
             f"*{get_translation('stores.store_name')}:* {store.store_name}\n"
             f"*{get_translation('reservations.reservation_code')}:* {reservation.reservation_code}\n"
             f"*{get_translation('reservations.reservation_datetime')}:* {reservation.reservation_datetime.strftime('%A, %d %B %Y - %H:%M')}\n"
@@ -80,6 +80,8 @@ def format_reservation_message(reservation):
             message += f"*{get_translation('reservations.reservation_room')}:* {reservation.reservation_room}\n"
         if reservation.reservation_guests:
             message += f"*{get_translation('reservations.reservation_guests')}:* {reservation.reservation_guests}\n"
+        if reservation.reservation_guests:
+            message += f"*{get_translation('reservations.reservation_notes')}:* {reservation.reservation_notes}\n"
 
         message += f"\n{get_translation('whatsapp.thank_you')}"
 

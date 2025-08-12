@@ -234,7 +234,6 @@
         "will_send_to": "Notification will be sent to:",
         "cannot_send_no_number": "Cannot send, the WhatsApp number for this store has not been configured.",
         "greeting": "New Reservation Received!",
-        "intro": "Here are the details of the reservation that has been made through our system",
         "thank_you": "Thank you for your attention.",
         "send_button": "Send via WhatsApp",
         "send_revenue_report": "Send Revenue Report via WhatsApp",

@@ -234,7 +234,6 @@
         "will_send_to": "Notifikasi akan dikirim ke:",
         "cannot_send_no_number": "Tidak bisa mengirim, nomor WhatsApp untuk toko ini belum diatur.",
         "greeting": "Reservasi Baru Diterima!",
-        "intro": "Berikut adalah detail reservasi yang telah dibuat melalui sistem kami",
         "thank_you": "Terima kasih atas perhatian Anda.",
         "send_button": "Kirim via WhatsApp",
         "send_revenue_report": "Kirim Laporan Pendapatan via WhatsApp",

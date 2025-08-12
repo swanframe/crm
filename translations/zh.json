@@ -234,7 +234,6 @@
         "will_send_to": "通知将发送至：",
         "cannot_send_no_number": "无法发送，此商店的 WhatsApp 号码尚未配置。",
         "greeting": "收到新预订！",
-        "intro": "以下是通过我们系统创建的预订详情",
         "thank_you": "谢谢您的关注。",
         "send_button": "通过 WhatsApp 发送",
         "send_revenue_report": "通过 WhatsApp 发送收入报告",
