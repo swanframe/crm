@@ -1,0 +1,28 @@
+<!-- templates/whatsapp_settings.html -->
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('whatsapp.settings_title') }} - {{ _('app_name') }}{% endblock %}
+
+{% block page_title %}{{ _('whatsapp.settings_title') }}{% endblock %}
+
+{% block page_content %}
+<div class="card shadow-sm">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0">{{ _('whatsapp.api_token_config') }}</h5>
+    </div>
+    <div class="card-body">
+        <p class="card-text">{{ _('whatsapp.settings_description') }}</p>
+        
+        <form method="POST" action="{{ url_for('whatsapp_settings') }}">
+            <div class="mb-3">
+                <label for="whatsapp_api_token" class="form-label">{{ _('whatsapp.api_token_label') }}</label>
+                <input type="password" class="form-control" id="whatsapp_api_token" name="whatsapp_api_token" value="{{ token if token else '' }}" placeholder="{{ _('whatsapp.token_placeholder') }}">
+                <div class="form-text">{{ _('whatsapp.token_help_text') }}</div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-2"></i>{{ _('common.save_changes_button') }}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

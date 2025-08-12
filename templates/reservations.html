@@ -207,9 +207,10 @@
                     <div class="mb-3">
                         <label for="add_store_id" class="form-label">{{ _('stores.store_name') }}</label>
                         <select class="form-select" id="add_store_id" name="store_id" required>
-                            <option value="">{{ _('common.select_placeholder', entity_name=_('sidebar.stores')) }}</option>
+                            <option value="" data-whatsapp="">{{ _('common.select_placeholder', entity_name=_('sidebar.stores')) }}</option>
                             {% for store in all_stores %}
-                                <option value="{{ store.store_id }}">{{ store.store_name }}</option>
+                                <!-- NEW: Added data-whatsapp attribute -->
+                                <option value="{{ store.store_id }}" data-whatsapp="{{ store.store_whatsapp if store.store_whatsapp else '' }}">{{ store.store_name }}</option>
                             {% endfor %}
                         </select>
                     </div>
@@ -245,6 +246,14 @@
                         <label for="add_reservation_notes" class="form-label">{{ _('reservations.reservation_notes') }}</label>
                         <textarea class="form-control" id="add_reservation_notes" name="reservation_notes" rows="3"></textarea>
                     </div>
+                    <!-- --- NEW: WhatsApp Checkbox --- -->
+                    <hr>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="add_send_whatsapp" name="send_whatsapp">
+                        <label class="form-check-label" for="add_send_whatsapp">{{ _('whatsapp.send_notification_label') }}</label>
+                        <div id="add_whatsapp_status" class="form-text"></div>
+                    </div>
+                    <!-- --- END NEW --- -->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('common.close_button') }}</button>
@@ -415,12 +424,54 @@
         }
     }
 
+    // --- NEW: WhatsApp Checkbox Logic ---
+    function setupWhatsappCheckbox(modalId) {
+        const modal = document.getElementById(modalId);
+        if (!modal) return;
+
+        const storeSelect = modal.querySelector('select[name="store_id"]');
+        const whatsappCheckbox = modal.querySelector('input[name="send_whatsapp"]');
+        const whatsappStatus = modal.querySelector('.form-text'); // e.g., #add_whatsapp_status or #edit_whatsapp_status
+
+        if (!storeSelect || !whatsappCheckbox || !whatsappStatus) return;
+
+        function updateWhatsappState() {
+            const selectedOption = storeSelect.options[storeSelect.selectedIndex];
+            const whatsappNumber = selectedOption.getAttribute('data-whatsapp');
+
+            if (whatsappNumber) {
+                whatsappCheckbox.disabled = false;
+                whatsappStatus.textContent = `{{ _('whatsapp.will_send_to') }} ${whatsappNumber}`;
+                whatsappStatus.classList.remove('text-danger');
+                whatsappStatus.classList.add('text-muted');
+            } else {
+                whatsappCheckbox.disabled = true;
+                whatsappCheckbox.checked = false; // Uncheck if disabled
+                whatsappStatus.textContent = `{{ _('whatsapp.cannot_send_no_number') }}`;
+                whatsappStatus.classList.add('text-danger');
+                whatsappStatus.classList.remove('text-muted');
+            }
+        }
+
+        storeSelect.addEventListener('change', updateWhatsappState);
+
+        // Initialize state when modal is shown
+        modal.addEventListener('show.bs.modal', function() {
+            // Slight delay to ensure modal elements are ready
+            setTimeout(updateWhatsappState, 100);
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         // Setup for Add Reservation Modal
         setupCustomerSearch('add_customer_search', 'add_customer_id_hidden', 'add_customer_suggestions');
 
         // Setup for Edit Reservation Modal
         setupCustomerSearch('edit_customer_search', 'edit_customer_id_hidden', 'edit_customer_suggestions');
+
+        // Initialize WhatsApp logic for both modals
+        setupWhatsappCheckbox('addReservationModal');
+        // setupWhatsappCheckbox('editReservationModal'); // Pastikan ID modal edit benar
 
         // Script to populate data in the edit modal
         var editReservationModal = document.getElementById('editReservationModal');

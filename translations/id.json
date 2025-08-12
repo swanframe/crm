@@ -154,7 +154,13 @@
         "revenue_target_delete_failed": "Gagal menghapus target pendapatan.",
         "target_updated_success": "Target berhasil diperbarui.",
         "target_deleted_success": "Target berhasil dihapus.",
-        "target_added_success": "Target berhasil ditambahkan."
+        "target_added_success": "Target berhasil ditambahkan.",
+        "whatsapp_settings_updated": "Pengaturan WhatsApp berhasil diperbarui.",
+        "whatsapp_settings_failed": "Gagal memperbarui pengaturan WhatsApp.",
+        "whatsapp_sent_success": "Notifikasi WhatsApp berhasil dikirim.",
+        "whatsapp_sent_failed": "Gagal mengirim notifikasi WhatsApp. Alasan: {reason}",
+        "whatsapp_format_failed": "Gagal membuat format pesan WhatsApp.",
+        "whatsapp_no_target": "Gagal mengirim, nomor WhatsApp untuk toko ini tidak diatur."
     },
     "common": {
         "id": "ID",
@@ -214,6 +220,20 @@
         "new_password": "Kata Sandi Baru",
         "confirm_new_password": "Konfirmasi Kata Sandi Baru",
         "change_password_button": "Ubah Kata Sandi"
+    },
+    "whatsapp": {
+        "settings_title": "Pengaturan WhatsApp",
+        "api_token_config": "Konfigurasi Token API",
+        "settings_description": "Kelola token API untuk integrasi notifikasi WhatsApp. Token ini digunakan untuk mengirim pesan reservasi ke nomor WhatsApp toko.",
+        "api_token_label": "Token API Fonnte",
+        "token_placeholder": "Masukkan token API Anda di sini...",
+        "token_help_text": "Token akan disimpan dengan aman dan tidak akan ditampilkan lagi setelah disimpan.",
+        "send_notification_label": "Kirim notifikasi detail reservasi via WhatsApp",
+        "will_send_to": "Notifikasi akan dikirim ke:",
+        "cannot_send_no_number": "Tidak bisa mengirim, nomor WhatsApp untuk toko ini belum diatur.",
+        "greeting": "Reservasi Baru Diterima!",
+        "intro": "Berikut adalah detail reservasi yang telah dibuat melalui sistem kami",
+        "thank_you": "Terima kasih atas perhatian Anda."
     },
     "stores": {
         "management_title": "Manajemen Toko",

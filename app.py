@@ -11,10 +11,11 @@ from models.revenue import Revenue # NEW: Import Revenue model
 from models.revenue_type import RevenueType # NEW: Import RevenueType model
 from models.revenue_item import RevenueItem # NEW: Import RevenueItem model
 from models.revenue_compliment import RevenueCompliment # NEW: Import RevenueCompliment model
-# NEW: Import StoreRevenueTarget model
-from models.store_revenue_target import StoreRevenueTarget
+from models.store_revenue_target import StoreRevenueTarget # NEW: Import StoreRevenueTarget model
+from models.setting import Setting # NEW: Import Setting model
 from utilities.security import check_hashed_password, hash_password
 from utilities.localization import init_app_localization, get_translation
+from utilities.whatsapp_sender import send_whatsapp_message, format_reservation_message # NEW: Import WhatsApp sender
 import math
 import datetime
 from psycopg2 import errors
@@ -880,6 +881,7 @@ def add_reservation():
         reservation_event = request.form.get('reservation_event')
         reservation_room = request.form.get('reservation_room')
         reservation_guests = request.form.get('reservation_guests')
+        send_whatsapp = request.form.get('send_whatsapp') == 'on' # NEW: Check if the checkbox is ticked
         
         # Convert reservation_guests to integer, handle empty string
         if reservation_guests:
@@ -911,6 +913,25 @@ def add_reservation():
                 )
                 if new_reservation.save(g.user.id):
                     flash(get_translation('flash_messages.reservation_added_success_redirect', reservation_id=new_reservation.reservation_id), 'success')
+                    
+                    # --- NEW: WhatsApp Sending Logic ---
+                    if send_whatsapp:
+                        store = Store.find_by_id(new_reservation.store_id)
+                        if store and store.store_whatsapp:
+                            message = format_reservation_message(new_reservation)
+                            if message:
+                                result = send_whatsapp_message(store.store_whatsapp, message)
+                                if result and result.get('status'):
+                                    flash(get_translation('flash_messages.whatsapp_sent_success'), 'success')
+                                else:
+                                    reason = result.get('reason', 'Unknown error')
+                                    flash(get_translation('flash_messages.whatsapp_sent_failed', reason=reason), 'danger')
+                            else:
+                                flash(get_translation('flash_messages.whatsapp_format_failed'), 'danger')
+                        else:
+                            flash(get_translation('flash_messages.whatsapp_no_target'), 'warning')
+                    # --- END NEW ---
+
                     return redirect(url_for('view_reservation_detail', reservation_id=new_reservation.reservation_id))
                 else:
                     flash(get_translation('flash_messages.reservation_add_failed'), 'danger')
@@ -941,6 +962,7 @@ def edit_reservation(reservation_id):
         reservation.reservation_event = request.form.get('reservation_event')
         reservation.reservation_room = request.form.get('reservation_room')
         reservation_guests = request.form.get('reservation_guests')
+        send_whatsapp = request.form.get('send_whatsapp') == 'on' # NEW: Check if the checkbox is ticked
 
         # Convert reservation_guests to integer, handle empty string
         if reservation_guests:
@@ -956,6 +978,25 @@ def edit_reservation(reservation_id):
             reservation.reservation_datetime = datetime.datetime.fromisoformat(reservation_datetime_str)
             if reservation.save(g.user.id):
                 flash(get_translation('flash_messages.reservation_updated_success'), 'success')
+
+                # --- NEW: WhatsApp Sending Logic ---
+                if send_whatsapp:
+                    store = Store.find_by_id(reservation.store_id)
+                    if store and store.store_whatsapp:
+                        message = format_reservation_message(reservation)
+                        if message:
+                            result = send_whatsapp_message(store.store_whatsapp, message)
+                            if result and result.get('status'):
+                                flash(get_translation('flash_messages.whatsapp_sent_success'), 'success')
+                            else:
+                                reason = result.get('reason', 'Unknown error')
+                                flash(get_translation('flash_messages.whatsapp_sent_failed', reason=reason), 'danger')
+                        else:
+                            flash(get_translation('flash_messages.whatsapp_format_failed'), 'danger')
+                    else:
+                        flash(get_translation('flash_messages.whatsapp_no_target'), 'warning')
+                # --- END NEW ---
+
                 return redirect(url_for('view_reservation_detail', reservation_id=reservation.reservation_id))
             else:
                 flash(get_translation('flash_messages.reservation_update_failed'), 'danger')
@@ -1595,6 +1636,27 @@ def search_revenue_types():
             'category': rt.revenue_type_category
         })
     return jsonify(results)
+
+
+# --- NEW: WhatsApp Settings Route ---
+@app.route('/settings/whatsapp', methods=['GET', 'POST'])
+@login_required
+@role_required(['Admin']) # Only Admin can access
+def whatsapp_settings():
+    """
+    Displays the WhatsApp settings page and handles token updates.
+    """
+    if request.method == 'POST':
+        token = request.form.get('whatsapp_api_token')
+        setting = Setting(setting_key='whatsapp_api_token', setting_value=token)
+        if setting.save():
+            flash(get_translation('flash_messages.whatsapp_settings_updated'), 'success')
+        else:
+            flash(get_translation('flash_messages.whatsapp_settings_failed'), 'danger')
+        return redirect(url_for('whatsapp_settings'))
+
+    current_token = Setting.get_value('whatsapp_api_token')
+    return render_template('whatsapp_settings.html', token=current_token)
 
 
 if __name__ == '__main__':

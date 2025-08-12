@@ -81,9 +81,22 @@
                 </a>
             </li>
             <li class="nav-item mb-1">
-                <a class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}" href="{{ url_for('settings') }}">
+                <a class="nav-link {% if request.endpoint == 'settings' or request.endpoint == 'whatsapp_settings' %}active{% endif %}" data-bs-toggle="collapse" href="#settingsSubmenu" role="button" aria-expanded="false" aria-controls="settingsSubmenu">
                     <i class="bi bi-gear me-2"></i> {{ _('sidebar.settings') }}
                 </a>
+                <div class="collapse {% if request.endpoint == 'settings' or request.endpoint == 'whatsapp_settings' %}show{% endif %}" id="settingsSubmenu">
+                    <ul class="nav flex-column ps-3">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}" href="{{ url_for('settings') }}">{{ _('settings.change_password') }}</a>
+                        </li>
+                        {# NEW: WhatsApp Settings visibility: Admin only #}
+                        {% if g.user.user_level == 'Admin' %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'whatsapp_settings' %}active{% endif %}" href="{{ url_for('whatsapp_settings') }}">{{ _('whatsapp.settings_title') }}</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
             </li>
         </ul>
         

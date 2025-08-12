@@ -154,7 +154,13 @@
         "revenue_target_delete_failed": "Failed to delete revenue target.",
         "target_updated_success": "Target updated successfully.",
         "target_deleted_success": "Target deleted successfully.",
-        "target_added_success": "Target added successfully."
+        "target_added_success": "Target added successfully.",
+        "whatsapp_settings_updated": "WhatsApp settings updated successfully.",
+        "whatsapp_settings_failed": "Failed to update WhatsApp settings.",
+        "whatsapp_sent_success": "WhatsApp notification sent successfully.",
+        "whatsapp_sent_failed": "Failed to send WhatsApp notification. Reason: {reason}",
+        "whatsapp_format_failed": "Failed to create WhatsApp message format.",
+        "whatsapp_no_target": "Failed to send, WhatsApp number for this store is not configured."
     },
     "common": {
         "id": "ID",
@@ -214,6 +220,20 @@
         "new_password": "New Password",
         "confirm_new_password": "Confirm New Password",
         "change_password_button": "Change Password"
+    },
+    "whatsapp": {
+        "settings_title": "WhatsApp Settings",
+        "api_token_config": "API Token Configuration",
+        "settings_description": "Manage the API token for WhatsApp notification integration. This token is used to send reservation messages to the store's WhatsApp number.",
+        "api_token_label": "Fonnte API Token",
+        "token_placeholder": "Enter your API token here...",
+        "token_help_text": "The token will be stored securely and will not be displayed again after saving.",
+        "send_notification_label": "Send reservation details notification via WhatsApp",
+        "will_send_to": "Notification will be sent to:",
+        "cannot_send_no_number": "Cannot send, the WhatsApp number for this store has not been configured.",
+        "greeting": "New Reservation Received!",
+        "intro": "Here are the details of the reservation that has been made through our system",
+        "thank_you": "Thank you for your attention."
     },
     "stores": {
         "management_title": "Stores Management",

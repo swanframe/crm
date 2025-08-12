@@ -154,7 +154,13 @@
         "revenue_target_delete_failed": "删除收入目标失败。",
         "target_updated_success": "目标更新成功。",
         "target_deleted_success": "目标删除成功。",
-        "target_added_success": "目标添加成功。"
+        "target_added_success": "目标添加成功。",
+        "whatsapp_settings_updated": "WhatsApp 设置已成功更新。",
+        "whatsapp_settings_failed": "更新 WhatsApp 设置失败。",
+        "whatsapp_sent_success": "WhatsApp 通知已成功发送。",
+        "whatsapp_sent_failed": "发送 WhatsApp 通知失败。原因：{reason}",
+        "whatsapp_format_failed": "创建 WhatsApp 消息格式失败。",
+        "whatsapp_no_target": "发送失败，此商店的 WhatsApp 号码未配置。"
     },
     "common": {
         "id": "ID",
@@ -214,6 +220,20 @@
         "new_password": "新密码",
         "confirm_new_password": "确认新密码",
         "change_password_button": "更改密码"
+    },
+    "whatsapp": {
+        "settings_title": "WhatsApp 设置",
+        "api_token_config": "API 令牌配置",
+        "settings_description": "管理用于 WhatsApp 通知集成的 API 令牌。此令牌用于向商店的 WhatsApp 号码发送预订消息。",
+        "api_token_label": "Fonnte API 令牌",
+        "token_placeholder": "在此处输入您的 API 令牌...",
+        "token_help_text": "令牌将安全存储，保存后将不再显示。",
+        "send_notification_label": "通过 WhatsApp 发送预订详情通知",
+        "will_send_to": "通知将发送至：",
+        "cannot_send_no_number": "无法发送，此商店的 WhatsApp 号码尚未配置。",
+        "greeting": "收到新预订！",
+        "intro": "以下是通过我们系统创建的预订详情",
+        "thank_you": "谢谢您的关注。"
     },
     "stores": {
         "management_title": "商店管理",
