@@ -240,7 +240,13 @@
         "revenue_report_title": "Revenue Report",
         "revenue_summary": "Revenue Summary",
         "revenue_items_list": "Revenue Items List",
-        "revenue_compliments_list": "Compliments List"
+        "revenue_compliments_list": "Compliments List",
+        "performance_notes": "Performance Notes",
+        "days_remaining": "Days Remaining",
+        "remaining_target": "Remaining Target",
+        "required_daily": "Required Daily Average",
+        "performance_gap_warning": "Need to increase daily average by Rp {gap:,.2f} to meet target",
+        "target_achieved": "Monthly target already achieved"
     },
     "stores": {
         "management_title": "Stores Management",

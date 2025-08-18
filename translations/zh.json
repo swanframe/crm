@@ -240,7 +240,13 @@
         "revenue_report_title": "收入报告",
         "revenue_summary": "收入摘要",
         "revenue_items_list": "收入项目列表",
-        "revenue_compliments_list": "赠品列表"
+        "revenue_compliments_list": "赠品列表",
+        "performance_notes": "业绩说明",
+        "days_remaining": "剩余天数",
+        "remaining_target": "剩余目标",
+        "required_daily": "所需日平均值",
+        "performance_gap_warning": "需要将日平均值提高 Rp {gap:,.2f} 以达到目标",
+        "target_achieved": "月度目标已完成"
     },
     "stores": {
         "management_title": "商店管理",

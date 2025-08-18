@@ -3,7 +3,11 @@ import requests
 from models.setting import Setting
 from models.store import Store
 from models.customer import Customer
+from models.revenue import Revenue
+from models.store_revenue_target import StoreRevenueTarget
 from utilities.localization import get_translation
+import calendar
+import datetime
 
 def send_whatsapp_message(target, message):
     """
@@ -105,40 +109,93 @@ def format_revenue_message(revenue, revenue_items, revenue_compliments):
         total_deductions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Deduction')
         net_revenue = total_additions - total_deductions
 
+        # Get current date and target information
+        revenue_date = revenue.revenue_date
+        target_month = revenue_date.month
+        target_year = revenue_date.year
+        
+        # --- NEW: Enhanced Performance Analysis ---
+        # Fetch all targets for the selected year
+        revenue_targets_raw = StoreRevenueTarget.find_all_for_store_by_year(revenue.store_id, target_year)
+        revenue_targets = {target.target_month: target for target in revenue_targets_raw}
+        revenue_target = revenue_targets.get(target_month)
+        
+        # Calculate accumulated net revenue for the month
+        accumulated_net_revenue = Revenue.get_monthly_net_revenue(
+            revenue.store_id, 
+            target_year, 
+            target_month
+        )
+        
+        # Calculate achievement percentage
+        achievement_percentage = 0
+        if revenue_target and revenue_target.target_amount > 0:
+            achievement_percentage = (accumulated_net_revenue / revenue_target.target_amount) * 100
+
         # --- Message Header ---
         message = (
-            f"*{get_translation('whatsapp.revenue_report_title')}*\n\n"
+            f"*📊 {get_translation('whatsapp.revenue_report_title')}*\n\n"
             f"*{get_translation('stores.store_name')}:* {store.store_name}\n"
-            f"*{get_translation('revenues.revenue_date')}:* {revenue.revenue_date.strftime('%d %B %Y')}\n"
+            f"*{get_translation('revenues.revenue_date')}:* {revenue_date.strftime('%d %B %Y')}\n"
             f"*{get_translation('revenues.guests')}:* {revenue.revenue_guests if revenue.revenue_guests is not None else '-'}\n"
             f"*{get_translation('revenues.notes')}:* {revenue.revenue_notes if revenue.revenue_notes else '-'}\n\n"
         )
 
-        # --- Summary Section ---
-        message += (
-            f"*{get_translation('whatsapp.revenue_summary')}*\n"
-            f"_{get_translation('revenues.total_additions')}: Rp {total_additions:,.2f}_\n"
-            f"_{get_translation('revenues.total_deductions')}: Rp {total_deductions:,.2f}_\n"
-            f"*{get_translation('revenues.net_revenue')}: Rp {net_revenue:,.2f}*\n\n"
-        )
+        # --- Performance Summary ---
+        if revenue_target:
+            message += (
+                f"*📈 {get_translation('revenues.target_achievement')}*\n"
+                f"- {get_translation('revenues.target_amount')}: Rp {revenue_target.target_amount:,.2f}\n"
+                f"- {get_translation('revenues.actual_revenue')}: Rp {accumulated_net_revenue:,.2f}\n"
+                f"- {get_translation('revenues.monthly_accumulated')}: {achievement_percentage:.2f}%\n\n"
+            )
 
         # --- Revenue Items Section ---
         if revenue_items:
-            message += f"*{get_translation('whatsapp.revenue_items_list')}*\n"
+            message += f"*➕➖ {get_translation('whatsapp.revenue_items_list')}*\n"
             for item in revenue_items:
-                category_symbol = "✅" if item.get_revenue_type_category() == 'Addition' else "❌"
-                message += f"- {category_symbol} {item.get_revenue_type_name()}: Rp {item.revenue_item_amount:,.2f}\n"
+                category_symbol = "➕" if item.get_revenue_type_category() == 'Addition' else "➖"
+                message += f"{category_symbol} {item.get_revenue_type_name()}: Rp {item.revenue_item_amount:,.2f}\n"
             message += "\n"
+
+        # --- Summary Section ---
+        message += (
+            f"*💰 {get_translation('whatsapp.revenue_summary')}*\n"
+            f"- {get_translation('revenues.total_additions')}: Rp {total_additions:,.2f}\n"
+            f"- {get_translation('revenues.total_deductions')}: Rp {total_deductions:,.2f}\n"
+            f"- *{get_translation('revenues.net_revenue')}: Rp {net_revenue:,.2f}*\n\n"
+        )
 
         # --- Compliments Section ---
         if revenue_compliments:
-            message += f"*{get_translation('whatsapp.revenue_compliments_list')}*\n"
+            message += f"*🎁 {get_translation('whatsapp.revenue_compliments_list')}*\n"
             for comp in revenue_compliments:
-                comp_for = comp.revenue_compliment_for if comp.revenue_compliment_for else '-'
+                comp_for = comp.revenue_compliment_for if comp.revenue_compliment_for else get_translation('common.not_set')
                 message += f"- {comp.revenue_compliment_description} ({get_translation('revenues.compliment_for')}: {comp_for})\n"
             message += "\n"
 
-        message += get_translation('whatsapp.thank_you')
+        # --- Performance Notes ---
+        if revenue_target:
+            # Calculate remaining target and required daily average
+            remaining_target = revenue_target.target_amount - accumulated_net_revenue
+            days_remaining = (datetime.date(target_year, target_month, calendar.monthrange(target_year, target_month)[1]) - revenue_date).days
+            
+            if days_remaining > 0:
+                required_daily = remaining_target / days_remaining
+                message += (
+                    f"*📅 {get_translation('whatsapp.performance_notes')}*\n"
+                    f"- {get_translation('whatsapp.days_remaining')}: {days_remaining}\n"
+                    f"- {get_translation('whatsapp.remaining_target')}: Rp {remaining_target:,.2f}\n"
+                    f"- {get_translation('whatsapp.required_daily')}: Rp {required_daily:,.2f}/hari\n"
+                )
+            
+            if remaining_target > 0 and required_daily > (accumulated_net_revenue / revenue_date.day):
+                gap = required_daily - (accumulated_net_revenue / revenue_date.day)
+                message += f"- ⚠️ {get_translation('whatsapp.performance_gap_warning').format(gap=gap)}\n"
+            elif remaining_target <= 0:
+                message += f"- ✅ {get_translation('whatsapp.target_achieved')}\n"
+
+        message += f"\n{get_translation('whatsapp.thank_you')}"
 
         return message
     except Exception as e:
