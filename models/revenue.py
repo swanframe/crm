@@ -1,4 +1,5 @@
 # models/revenue.py
+import datetime
 from models.base_model import BaseModel
 # Import Store model locally when needed to avoid circular dependencies
 # from models.store import Store
@@ -97,3 +98,32 @@ class Revenue(BaseModel):
             search_query, all_search_columns,
             join_tables=join_tables, join_columns_for_search=join_columns_for_search
         )
+
+    @classmethod
+    def get_monthly_net_revenue(cls, store_id, year, month):
+        """Menghitung total pendapatan bersih untuk bulan tertentu"""
+        start_date = datetime.date(year, month, 1)
+        if month == 12:
+            end_date = datetime.date(year + 1, 1, 1) - datetime.timedelta(days=1)
+        else:
+            end_date = datetime.date(year, month + 1, 1) - datetime.timedelta(days=1)
+        
+        query = """
+            SELECT COALESCE(SUM(net_amount), 0) as total_net
+            FROM (
+                SELECT 
+                    r.revenue_id,
+                    (COALESCE(SUM(CASE WHEN rt.revenue_type_category = 'Addition' THEN ri.revenue_item_amount ELSE 0 END), 0) 
+                     - COALESCE(SUM(CASE WHEN rt.revenue_type_category = 'Deduction' THEN ri.revenue_item_amount ELSE 0 END), 0)
+                    ) as net_amount
+                FROM revenues r
+                LEFT JOIN revenue_items ri ON r.revenue_id = ri.revenue_id
+                LEFT JOIN revenue_types rt ON ri.revenue_type_id = rt.revenue_type_id
+                WHERE r.store_id = %s
+                    AND r.revenue_date BETWEEN %s AND %s
+                GROUP BY r.revenue_id
+            ) as revenue_totals
+        """
+        params = (store_id, start_date, end_date)
+        result = cls._execute_query(query, params, fetch_one=True)
+        return result['total_net'] if result else 0

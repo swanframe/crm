@@ -1402,15 +1402,30 @@ def view_revenue_detail(revenue_id):
     net_revenue = total_revenue_additions - total_revenue_deductions
 
     # --- NEW: Target Achievement Logic ---
-    revenue_target = None
-    achievement_percentage = 0
     if revenue.revenue_date:
         target_month = revenue.revenue_date.month
         target_year = revenue.revenue_date.year
-        revenue_target = StoreRevenueTarget.find_by_store_and_date(revenue.store_id, target_year, target_month)
         
+        # Fetch all targets for the selected year
+        revenue_targets_raw = StoreRevenueTarget.find_all_for_store_by_year(revenue.store_id, target_year)
+        
+        # Create a dictionary of targets keyed by month for easy lookup
+        revenue_targets = {target.target_month: target for target in revenue_targets_raw}
+        
+        # Calculate accumulated net revenue for the month
+        accumulated_net_revenue = Revenue.get_monthly_net_revenue(
+            revenue.store_id, 
+            target_year, 
+            target_month
+        )
+        
+        # Get target for current month
+        revenue_target = revenue_targets.get(target_month)
+        
+        # Calculate achievement percentage
+        achievement_percentage = 0
         if revenue_target and revenue_target.target_amount > 0:
-            achievement_percentage = (net_revenue / revenue_target.target_amount) * 100
+            achievement_percentage = (accumulated_net_revenue / revenue_target.target_amount) * 100
     # --- END NEW ---
 
     stores = Store.find_all() # Ambil semua toko
@@ -1433,6 +1448,7 @@ def view_revenue_detail(revenue_id):
                            all_revenue_types=all_revenue_types,
                            user_map=user_map,
                            # --- NEW: Pass target data to template ---
+                           accumulated_net_revenue=accumulated_net_revenue,
                            revenue_target=revenue_target,
                            achievement_percentage=achievement_percentage
                            )

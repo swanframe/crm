@@ -366,6 +366,7 @@
         "target_amount": "Jumlah Target",
         "actual_revenue": "Pendapatan Aktual",
         "target_month": "Bulan Target",
-        "no_target_set": "Target belum ditetapkan."
+        "no_target_set": "Target belum ditetapkan.",
+        "monthly_accumulated": "Akumulasi Bulanan"
     }
 }

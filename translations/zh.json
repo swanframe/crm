@@ -366,6 +366,7 @@
         "target_amount": "目标金额",
         "actual_revenue": "实际收入",
         "target_month": "目标月份",
-        "no_target_set": "未设置目标。"
+        "no_target_set": "未设置目标。",
+        "monthly_accumulated": "月累计"
     }
 }

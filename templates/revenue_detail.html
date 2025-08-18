@@ -113,8 +113,8 @@
                             <strong>Rp {{ "{:,.2f}".format(revenue_target.target_amount) }}</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
-                            <span>{{ _('revenues.actual_revenue') }}:</span>
-                            <strong>Rp {{ "{:,.2f}".format(net_revenue) }}</strong>
+                            <span>{{ _('revenues.actual_revenue') }} ({{ _('revenues.monthly_accumulated') }}):</span>
+                            <strong>Rp {{ "{:,.2f}".format(accumulated_net_revenue) }}</strong>
                         </div>
                         <div class="progress" style="height: 30px;">
                             <div class="progress-bar {% if achievement_percentage >= 100 %}bg-success{% else %}bg-primary{% endif %}" 

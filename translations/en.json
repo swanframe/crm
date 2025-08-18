@@ -366,6 +366,7 @@
         "target_amount": "Target Amount",
         "actual_revenue": "Actual Revenue",
         "target_month": "Target Month",
-        "no_target_set": "No target has been set."
+        "no_target_set": "No target has been set.",
+        "monthly_accumulated": "Monthly Accumulated"
     }
 }
