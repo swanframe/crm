@@ -852,7 +852,7 @@ def list_reservations():
     # Fetch all customers and stores for dropdowns in modals (will be replaced by search)
     # For now, keep them as they might be used by other parts or for initial load
     all_customers = Customer.find_all()
-    all_stores = Store.find_all()
+    all_stores = Store.find_all_sorted(sort_by='store_name', sort_order='ASC')
 
     return render_template('reservations.html', 
                            reservations=reservations, # FIX: Changed 'reservasi' to 'reservations'
@@ -1044,7 +1044,7 @@ def view_reservation_detail(reservation_id):
     # Fetch all customers and stores for dropdowns in modals (will be replaced by search)
     # For now, keep them as they might be used by other parts or for initial load
     all_customers = Customer.find_all()
-    all_stores = Store.find_all()
+    all_stores = Store.find_all_sorted(sort_by='store_name', sort_order='ASC')
 
     return render_template('reservation_detail.html', 
                            reservation=reservation,
@@ -1244,7 +1244,7 @@ def list_revenues():
     user_map = {user.id: user.username for user in users}
 
     # Mendapatkan data store untuk mapping
-    stores = Store.find_all()
+    stores = Store.find_all_sorted(sort_by='store_name', sort_order='ASC')
     store_map = {store.store_id: store.store_name for store in stores}
     
     return render_template('revenues.html', 
@@ -1428,7 +1428,7 @@ def view_revenue_detail(revenue_id):
             achievement_percentage = (accumulated_net_revenue / revenue_target.target_amount) * 100
     # --- END NEW ---
 
-    stores = Store.find_all() # Ambil semua toko
+    stores = Store.find_all_sorted(sort_by='store_name', sort_order='ASC') # Ambil semua toko
     all_revenue_types = RevenueType.find_all() # For dropdown in add item modal
 
     users = User.find_all()

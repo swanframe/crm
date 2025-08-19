@@ -26,3 +26,24 @@ class Store(BaseModel):
             created_at=created_at,
             updated_at=updated_at
         )
+
+    @classmethod
+    def find_all_sorted(cls, sort_by='store_name', sort_order='ASC'):
+        """
+        Mengambil semua record dari tabel dengan pengurutan.
+        """
+        if not cls._table_name:
+            raise NotImplementedError("Table name not set for this model.")
+        
+        # Validasi parameter sort
+        valid_columns = ['store_name', 'store_id']
+        if sort_by not in valid_columns:
+            sort_by = 'store_name'
+            
+        valid_orders = ['ASC', 'DESC']
+        if sort_order not in valid_orders:
+            sort_order = 'ASC'
+        
+        query = f"SELECT * FROM {cls._table_name} ORDER BY {sort_by} {sort_order}"
+        results = cls._execute_query(query, fetch_all=True)
+        return [cls(**row) for row in results] if results else []
