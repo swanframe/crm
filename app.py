@@ -833,7 +833,7 @@ def list_reservations():
     page = request.args.get('page', 1, type=int)
     search_query = request.args.get('search', type=str)
     sort_by = request.args.get('sort_by', 'reservation_id', type=str) # Default sort by 'reservation_id'
-    sort_order = request.args.get('sort_order', 'asc', type=str) # Default sort order 'asc'
+    sort_order = request.args.get('sort_order', 'desc', type=str) # Default sort order 'desc'
     per_page = 10 # Items per page
 
     # Searchable columns for reservations, including customer_name and store_name
