@@ -838,7 +838,7 @@ def list_reservations():
 
     # Searchable columns for reservations, including customer_name and store_name
     search_columns = ['reservation_status', 'reservation_notes', 'customer_name', 'store_name'] 
-    sortable_columns = ['reservation_id', 'customer_name', 'store_name', 'reservation_datetime', 'reservation_status', 'created_at', 'updated_at'] # Added customer_name and store_name to sortable columns
+    sortable_columns = ['reservation_id', 'customer_name', 'store_name', 'reservation_datetime', 'reservation_guests', 'created_at', 'updated_at'] # Added customer_name and store_name to sortable columns
     
     # Validate sort_by to prevent SQL Injection
     if sort_by not in sortable_columns:

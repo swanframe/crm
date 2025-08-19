@@ -84,9 +84,10 @@
                         </th>
                         {# Sortable Column: Status #}
                         <th>
-                            <a href="{{ url_for('list_reservations', page=page, search=search_query, sort_by='reservation_status', sort_order='asc' if sort_by != 'reservation_status' or sort_order == 'desc' else 'desc') }}" class="text-decoration-none text-dark">
-                                {{ _('reservations.reservation_status') }}
-                                {% if sort_by == 'reservation_status' %}
+                            <a href="{{ url_for('list_reservations', page=page, search=search_query, sort_by='reservation_guests', sort_order='asc' if sort_by != 'reservation_guests' or sort_order == 'desc' else 'desc') }}" 
+                               class="text-decoration-none text-dark">
+                                {{ _('reservations.reservation_guests') }}
+                                {% if sort_by == 'reservation_guests' %}
                                     {% if sort_order == 'asc' %}
                                         <i class="bi bi-caret-up-fill" aria-label="{{ _('common.sorted_ascending') }}"></i>
                                     {% else %}
@@ -105,16 +106,7 @@
                         <td>{{ reservation.get_customer_name() }}</td>
                         <td>{{ reservation.get_store_name() }}</td>
                         <td>{{ reservation.reservation_datetime.strftime('%Y-%m-%d %H:%M') if reservation.reservation_datetime else _('common.not_available_short') }}</td>
-                        <td>
-                            <span class="badge bg-{{ {
-                                'Pending': 'warning',
-                                'Confirmed': 'success',
-                                'Cancelled': 'danger',
-                                'Completed': 'info'
-                            }[reservation.reservation_status] | default('secondary') }}">
-                                {{ _('reservation_statuses.' + reservation.reservation_status) }}
-                            </span>
-                        </td>
+                        <td>{{ reservation.reservation_guests if reservation.reservation_guests is not none else _('common.not_available_short') }}</td>
                         <td>
                             <a href="{{ url_for('view_reservation_detail', reservation_id=reservation.reservation_id) }}" class="btn btn-sm btn-outline-primary me-1">
                                 <i class="bi bi-eye"></i> {{ _('common.view') }}
