@@ -1063,13 +1063,19 @@ def search_customers():
     Returns a JSON list of matching customers (id, name, code).
     """
     query = request.args.get('q', '')
-    # Limit results for performance
-    # Search by customer_name and customer_code
+    
+    # NEW: Menambahkan parameter pengurutan
+    sort_by = request.args.get('sort_by', 'customer_name')
+    sort_order = request.args.get('sort_order', 'asc')
+    
+    # Search by customer_name, customer_code, customer_telephone
     customers = Customer.get_paginated_data(
         page=1, 
-        per_page=10, # Limit to 10 results for autocomplete
+        per_page=10,
         search_query=query, 
-        search_columns=['customer_name', 'customer_code', 'customer_telephone']
+        search_columns=['customer_name', 'customer_code', 'customer_telephone'],
+        sort_by=sort_by,  # NEW: parameter pengurutan
+        sort_order=sort_order  # NEW: parameter arah urutan
     )
     
     results = []
