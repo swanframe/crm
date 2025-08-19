@@ -205,7 +205,8 @@
         "cancel_button": "Batal",
         "delete_confirmation": "Apakah Anda yakin ingin menghapus item ini?",
         "add": "Tambah",
-        "not_set": "Belum diatur"
+        "not_set": "Belum diatur",
+        "add_new_short": "Tambah Baru"
     },
     "profile": {
         "title": "Profil Pengguna",
@@ -325,7 +326,10 @@
         "reservation_event": "Acara",
         "reservation_room": "Ruangan",
         "reservation_guests": "Jumlah Tamu",
-        "reservation_code": "Kode Reservasi"
+        "reservation_code": "Kode Reservasi",
+        "customer_search_help": "Customer harus terdaftar terlebih dahulu. Jika tidak ditemukan,",
+        "manage_customers_link": "kelola pelanggan di sini",
+        "add_customer_button": "Tambah Pelanggan Baru"
     },
     "reservation_statuses": {
         "Pending": "Tertunda",

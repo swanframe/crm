@@ -205,7 +205,8 @@
         "cancel_button": "Cancel",
         "delete_confirmation": "Are you sure you want to delete this item?",
         "add": "Add",
-        "not_set": "Not set"
+        "not_set": "Not set",
+        "add_new_short": "Add New"
     },
     "profile": {
         "title": "User Profile",
@@ -325,7 +326,10 @@
         "reservation_event": "Event",
         "reservation_room": "Room",
         "reservation_guests": "Number of Guests",
-        "reservation_code": "Reservation Code"
+        "reservation_code": "Reservation Code",
+        "customer_search_help": "Customer must be registered first. If not found,",
+        "manage_customers_link": "manage customers here",
+        "add_customer_button": "Add New Customer"
     },
     "reservation_statuses": {
         "Pending": "Pending",

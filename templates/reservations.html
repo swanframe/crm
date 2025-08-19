@@ -191,8 +191,24 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="add_customer_search" class="form-label">{{ _('customers.customer_name') }}</label>
-                        <input type="text" class="form-control" id="add_customer_search" 
-                               placeholder="{{ _('reservations.search_customer_placeholder') }}" autocomplete="off" required>
+                        
+                        <!-- TAMBAHKAN PETUNJUK INI -->
+                        <div class="alert alert-info small py-1 mb-2">
+                            <i class="bi bi-info-circle"></i> 
+                            {{ _('reservations.customer_search_help') }}
+                            <a href="{{ url_for('list_customers') }}" class="alert-link">
+                                {{ _('reservations.manage_customers_link') }}
+                            </a>
+                        </div>
+                        
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="add_customer_search" 
+                                   placeholder="{{ _('reservations.search_customer_placeholder') }}" autocomplete="off" required>
+                            <!-- TAMBAHKAN TOMBOL INI -->
+                            <a class="btn btn-outline-secondary" href="{{ url_for('add_customer') }}">
+                                <i class="bi bi-plus-lg"></i> {{ _('common.add_new_short') }}
+                            </a>
+                        </div>
                         <input type="hidden" id="add_customer_id_hidden" name="customer_id" required>
                         <div id="add_customer_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
                     </div>
