@@ -205,8 +205,7 @@
         "cancel_button": "Cancel",
         "delete_confirmation": "Are you sure you want to delete this item?",
         "add": "Add",
-        "not_set": "Not set",
-        "add_new_short": "Add New"
+        "not_set": "Not set"
     },
     "profile": {
         "title": "User Profile",
@@ -241,13 +240,7 @@
         "revenue_report_title": "Revenue Report",
         "revenue_summary": "Revenue Summary",
         "revenue_items_list": "Revenue Items List",
-        "revenue_compliments_list": "Compliments List",
-        "performance_notes": "Performance Notes",
-        "days_remaining": "Days Remaining",
-        "remaining_target": "Remaining Target",
-        "required_daily": "Required Daily Average",
-        "performance_gap_warning": "Need to increase daily average by Rp {gap:,.2f} to meet target",
-        "target_achieved": "Monthly target already achieved"
+        "revenue_compliments_list": "Compliments List"
     },
     "stores": {
         "management_title": "Stores Management",
@@ -327,9 +320,8 @@
         "reservation_room": "Room",
         "reservation_guests": "Number of Guests",
         "reservation_code": "Reservation Code",
-        "customer_search_help": "Customer must be registered first. If not found,",
-        "manage_customers_link": "manage customers here",
-        "add_customer_button": "Add New Customer"
+        "customer_not_found_hint": "If the customer is not found in the search",
+        "add_customer_link": "add a new customer first"
     },
     "reservation_statuses": {
         "Pending": "Pending",

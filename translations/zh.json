@@ -205,8 +205,7 @@
         "cancel_button": "取消",
         "delete_confirmation": "您确定要删除此项吗？",
         "add": "添加",
-        "not_set": "未设置",
-        "add_new_short": "添加新"
+        "not_set": "未设置"
     },
     "profile": {
         "title": "用户资料",
@@ -241,13 +240,7 @@
         "revenue_report_title": "收入报告",
         "revenue_summary": "收入摘要",
         "revenue_items_list": "收入项目列表",
-        "revenue_compliments_list": "赠品列表",
-        "performance_notes": "业绩说明",
-        "days_remaining": "剩余天数",
-        "remaining_target": "剩余目标",
-        "required_daily": "所需日平均值",
-        "performance_gap_warning": "需要将日平均值提高 Rp {gap:,.2f} 以达到目标",
-        "target_achieved": "月度目标已完成"
+        "revenue_compliments_list": "赠品列表"
     },
     "stores": {
         "management_title": "商店管理",
@@ -327,9 +320,8 @@
         "reservation_room": "房间",
         "reservation_guests": "来宾人数",
         "reservation_code": "预订代码",
-        "customer_search_help": "客户必须先注册。如果未找到，",
-        "manage_customers_link": "在此管理客户",
-        "add_customer_button": "添加新客户"
+        "customer_not_found_hint": "如果在搜索中未找到客户",
+        "add_customer_link": "请先添加新客户"
     },
     "reservation_statuses": {
         "Pending": "待处理",

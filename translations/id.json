@@ -205,8 +205,7 @@
         "cancel_button": "Batal",
         "delete_confirmation": "Apakah Anda yakin ingin menghapus item ini?",
         "add": "Tambah",
-        "not_set": "Belum diatur",
-        "add_new_short": "Tambah Baru"
+        "not_set": "Belum diatur"
     },
     "profile": {
         "title": "Profil Pengguna",
@@ -241,13 +240,7 @@
         "revenue_report_title": "Laporan Pendapatan",
         "revenue_summary": "Ringkasan Pendapatan",
         "revenue_items_list": "Daftar Item Pendapatan",
-        "revenue_compliments_list": "Daftar Komplimen",
-        "performance_notes": "Catatan Kinerja",
-        "days_remaining": "Hari Tersisa",
-        "remaining_target": "Target Tersisa",
-        "required_daily": "Rata-rata Harian yang Dibutuhkan",
-        "performance_gap_warning": "Perlu meningkatkan rata-rata harian sebesar Rp {gap:,.2f} untuk mencapai target",
-        "target_achieved": "Target bulanan sudah tercapai"
+        "revenue_compliments_list": "Daftar Komplimen"
     },
     "stores": {
         "management_title": "Manajemen Toko",
@@ -327,9 +320,8 @@
         "reservation_room": "Ruangan",
         "reservation_guests": "Jumlah Tamu",
         "reservation_code": "Kode Reservasi",
-        "customer_search_help": "Customer harus terdaftar terlebih dahulu. Jika tidak ditemukan,",
-        "manage_customers_link": "kelola pelanggan di sini",
-        "add_customer_button": "Tambah Pelanggan Baru"
+        "customer_not_found_hint": "Jika pelanggan tidak ditemukan di pencarian",
+        "add_customer_link": "tambahkan pelanggan baru terlebih dahulu"
     },
     "reservation_statuses": {
         "Pending": "Tertunda",

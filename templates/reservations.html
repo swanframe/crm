@@ -191,26 +191,13 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="add_customer_search" class="form-label">{{ _('customers.customer_name') }}</label>
-                        
-                        <!-- TAMBAHKAN PETUNJUK INI -->
-                        <div class="alert alert-info small py-1 mb-2">
-                            <i class="bi bi-info-circle"></i> 
-                            {{ _('reservations.customer_search_help') }}
-                            <a href="{{ url_for('list_customers') }}" class="alert-link">
-                                {{ _('reservations.manage_customers_link') }}
-                            </a>
-                        </div>
-                        
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="add_customer_search" 
-                                   placeholder="{{ _('reservations.search_customer_placeholder') }}" autocomplete="off" required>
-                            <!-- TAMBAHKAN TOMBOL INI -->
-                            <a class="btn btn-outline-secondary" href="{{ url_for('add_customer') }}">
-                                <i class="bi bi-plus-lg"></i> {{ _('common.add_new_short') }}
-                            </a>
-                        </div>
+                        <input type="text" class="form-control" id="add_customer_search" 
+                               placeholder="{{ _('reservations.search_customer_placeholder') }}" autocomplete="off" required>
                         <input type="hidden" id="add_customer_id_hidden" name="customer_id" required>
                         <div id="add_customer_suggestions" class="list-group position-absolute w-100" style="z-index: 1051;"></div>
+                        <small class="form-text text-muted">
+                            {{ _('reservations.customer_not_found_hint') }} <a href="{{ url_for('list_customers') }}">{{ _('reservations.add_customer_link') }}</a>.
+                        </small>
                     </div>
                     <div class="mb-3">
                         <label for="add_store_id" class="form-label">{{ _('stores.store_name') }}</label>
@@ -436,17 +423,19 @@
     function setupWhatsappCheckbox(modalId) {
         const modal = document.getElementById(modalId);
         if (!modal) return;
-
+    
         const storeSelect = modal.querySelector('select[name="store_id"]');
         const whatsappCheckbox = modal.querySelector('input[name="send_whatsapp"]');
-        const whatsappStatus = modal.querySelector('.form-text'); // e.g., #add_whatsapp_status or #edit_whatsapp_status
-
+        // Gunakan ID yang spesifik berdasarkan modal
+        const whatsappStatusId = modalId === 'addReservationModal' ? 'add_whatsapp_status' : 'edit_whatsapp_status';
+        const whatsappStatus = document.getElementById(whatsappStatusId);
+    
         if (!storeSelect || !whatsappCheckbox || !whatsappStatus) return;
-
+    
         function updateWhatsappState() {
             const selectedOption = storeSelect.options[storeSelect.selectedIndex];
             const whatsappNumber = selectedOption.getAttribute('data-whatsapp');
-
+    
             if (whatsappNumber) {
                 whatsappCheckbox.disabled = false;
                 whatsappStatus.textContent = `{{ _('whatsapp.will_send_to') }} ${whatsappNumber}`;
@@ -460,9 +449,9 @@
                 whatsappStatus.classList.remove('text-muted');
             }
         }
-
+    
         storeSelect.addEventListener('change', updateWhatsappState);
-
+    
         // Initialize state when modal is shown
         modal.addEventListener('show.bs.modal', function() {
             // Slight delay to ensure modal elements are ready
