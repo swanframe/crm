@@ -240,7 +240,13 @@
         "revenue_report_title": "Laporan Pendapatan",
         "revenue_summary": "Ringkasan Pendapatan",
         "revenue_items_list": "Daftar Item Pendapatan",
-        "revenue_compliments_list": "Daftar Komplimen"
+        "revenue_compliments_list": "Daftar Komplimen",
+        "performance_notes": "Catatan Kinerja",
+        "days_remaining": "Hari Tersisa",
+        "remaining_target": "Target Tersisa",
+        "required_daily": "Rata-rata Harian yang Dibutuhkan",
+        "performance_gap_warning": "Perlu meningkatkan rata-rata harian sebesar Rp {gap:,.2f} untuk mencapai target",
+        "target_achieved": "Target bulanan sudah tercapai"
     },
     "stores": {
         "management_title": "Manajemen Toko",
