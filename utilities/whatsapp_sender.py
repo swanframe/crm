@@ -66,26 +66,32 @@ def format_reservation_message(reservation):
         if not store or not customer:
             return None
 
+        # Format tanggal dan waktu secara terpisah
+        date_str = reservation.reservation_datetime.strftime('%d %B %Y')  # Tanggal tanpa hari
+        time_str = reservation.reservation_datetime.strftime('%H:%M')      # Jam saja
+
         # Using translation keys for a multilingual message template
         message = (
-            f"*{get_translation('whatsapp.greeting')}*\n\n"
-            f"*{get_translation('customers.customer_name')}:* {customer.customer_name}\n"
-            f"*{get_translation('common.telephone')}:* {customer.customer_telephone}\n"
-            f"*{get_translation('stores.store_name')}:* {store.store_name}\n"
-            f"*{get_translation('reservations.reservation_code')}:* {reservation.reservation_code}\n"
-            f"*{get_translation('reservations.reservation_datetime')}:* {reservation.reservation_datetime.strftime('%A, %d %B %Y - %H:%M')}\n"
-            f"*{get_translation('reservations.reservation_status')}:* {get_translation('reservation_statuses.' + reservation.reservation_status)}\n"
+            f"{get_translation('whatsapp.greeting')}\n\n"
+            f"{get_translation('customers.customer_name')}: {customer.customer_name}\n"
+            f"{get_translation('common.telephone')}: {customer.customer_telephone}\n"
+            f"{get_translation('stores.store_name')}: {store.store_name}\n"
+            f"{get_translation('reservations.reservation_code')}: {reservation.reservation_code}\n"
+            f"{get_translation('reservations.reservation_date')}: {date_str}\n"  # Baris terpisah untuk tanggal
+            f"{get_translation('reservations.reservation_time')}: {time_str}\n"  # Baris terpisah untuk waktu
+            f"{get_translation('reservations.reservation_status')}: {get_translation('reservation_statuses.' + reservation.reservation_status)}\n"
         )
 
         # Add optional fields if they exist
         if reservation.reservation_event:
-            message += f"*{get_translation('reservations.reservation_event')}:* {reservation.reservation_event}\n"
+            message += f"{get_translation('reservations.reservation_event')}: {reservation.reservation_event}\n"
         if reservation.reservation_room:
-            message += f"*{get_translation('reservations.reservation_room')}:* {reservation.reservation_room}\n"
+            message += f"{get_translation('reservations.reservation_room')}: {reservation.reservation_room}\n"
         if reservation.reservation_guests:
-            message += f"*{get_translation('reservations.reservation_guests')}:* {reservation.reservation_guests}\n"
-        if reservation.reservation_guests:
-            message += f"*{get_translation('reservations.reservation_notes')}:* {reservation.reservation_notes}\n"
+            message += f"{get_translation('reservations.reservation_guests')}: {reservation.reservation_guests}\n"
+        if reservation.reservation_notes:
+            message += f"{get_translation('reservations.reservation_notes')}:\n"
+            message += f"{reservation.reservation_notes}\n"
 
         message += f"\n{get_translation('whatsapp.thank_you')}"
 

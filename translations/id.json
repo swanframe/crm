@@ -315,6 +315,8 @@
     "reservations": {
         "management_title": "Manajemen Reservasi",
         "reservation_datetime": "Tanggal & Waktu",
+        "reservation_date": "Tanggal",
+        "reservation_time": "Waktu",
         "reservation_status": "Status",
         "reservation_notes": "Catatan",
         "add_modal_title": "Tambah Reservasi Baru",

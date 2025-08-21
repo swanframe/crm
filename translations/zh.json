@@ -315,6 +315,8 @@
     "reservations": {
         "management_title": "预订管理",
         "reservation_datetime": "日期与时间",
+        "reservation_date": "日期",
+        "reservation_time": "时间",
         "reservation_status": "状态",
         "reservation_notes": "备注",
         "add_modal_title": "添加新预订",

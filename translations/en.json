@@ -315,6 +315,8 @@
     "reservations": {
         "management_title": "Reservations Management",
         "reservation_datetime": "Datetime",
+        "reservation_date": "Date",
+        "reservation_time": "Time",
         "reservation_status": "Status",
         "reservation_notes": "Notes",
         "add_modal_title": "Add New Reservation",
