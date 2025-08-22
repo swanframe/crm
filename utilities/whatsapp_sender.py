@@ -226,8 +226,8 @@ def format_revenue_message(revenue, revenue_items, revenue_compliments):
                 message += (
                     f"*📅 {get_translation('whatsapp.performance_notes')}*\n"
                     f"- {get_translation('whatsapp.days_remaining')}: {days_remaining}\n"
-                    f"- {get_translation('whatsapp.remaining_target')}: {format_currency_id(net_revenue)}\n"
-                    f"- {get_translation('whatsapp.required_daily')}: {format_currency_id(net_revenue)}/hari\n"
+                    f"- {get_translation('whatsapp.remaining_target')}: {format_currency_id(remaining_target)}\n"
+                    f"- {get_translation('whatsapp.required_daily')}: {format_currency_id(required_daily)}/hari\n"
                 )
             
             if remaining_target > 0 and required_daily > (accumulated_net_revenue / revenue_date.day):
