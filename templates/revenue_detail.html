@@ -85,15 +85,15 @@
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         {{ _('revenues.total_additions') }}
-                        <span class="badge bg-success rounded-pill fs-6">{{ "Rp {:,.2f}".format(total_revenue_additions) }}</span>
+                        <span class="badge bg-success rounded-pill fs-6">{{ total_revenue_additions|currency }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         {{ _('revenues.total_deductions') }}
-                        <span class="badge bg-danger rounded-pill fs-6">{{ "Rp {:,.2f}".format(total_revenue_deductions) }}</span>
+                        <span class="badge bg-danger rounded-pill fs-6">{{ total_revenue_deductions|currency }}</span>
                     </li>
                     <li class="list-group-item d-flex justify-content-between align-items-center fw-bold">
                         {{ _('revenues.net_revenue') }}
-                        <span class="badge bg-primary rounded-pill fs-5">{{ "Rp {:,.2f}".format(net_revenue) }}</span>
+                        <span class="badge bg-primary rounded-pill fs-5">{{ net_revenue|currency }}</span>
                     </li>
                 </ul>
             </div>
@@ -110,11 +110,11 @@
                     <div class="col-md-6">
                         <div class="d-flex justify-content-between mb-2">
                             <span>{{ _('revenues.target_amount') }}:</span>
-                            <strong>Rp {{ "{:,.2f}".format(revenue_target.target_amount) }}</strong>
+                            <strong>{{ revenue_target.target_amount|currency }}</strong>
                         </div>
                         <div class="d-flex justify-content-between mb-3">
                             <span>{{ _('revenues.actual_revenue') }} ({{ _('revenues.monthly_accumulated') }}):</span>
-                            <strong>Rp {{ "{:,.2f}".format(accumulated_net_revenue) }}</strong>
+                            <strong>{{ accumulated_net_revenue|currency }}</strong>
                         </div>
                         <div class="progress" style="height: 30px;">
                             <div class="progress-bar {% if achievement_percentage >= 100 %}bg-success{% else %}bg-primary{% endif %}" 
@@ -191,7 +191,7 @@
                                         <span class="badge bg-danger-light text-danger ms-1">{{ _('revenue_types.category_deduction') }}</span>
                                     {% endif %}
                                 </td>
-                                <td>{{ "Rp {:,.2f}".format(item.revenue_item_amount) }}</td>
+                                <td>{{ item.revenue_item_amount|currency }}</td>
                                 <td>
                                     <form action="{{ url_for('delete_revenue_item', revenue_id=revenue.revenue_id, revenue_item_id=item.revenue_item_id) }}" method="POST" onsubmit="return confirm('{{ _('common.are_you_sure_delete', entity_name=_('revenues.revenue_item')) }}');">
                                         <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>

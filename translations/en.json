@@ -245,7 +245,7 @@
         "days_remaining": "Days Remaining",
         "remaining_target": "Remaining Target",
         "required_daily": "Required Daily Average",
-        "performance_gap_warning": "Need to increase daily average by Rp {gap:,.2f} to meet target",
+        "performance_gap_warning": "Need to increase daily average by {gap} to meet target",
         "target_achieved": "Monthly target already achieved"
     },
     "stores": {

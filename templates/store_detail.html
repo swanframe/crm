@@ -186,7 +186,7 @@
                             <div class="me-3">
                                 <strong>
                                     {% if target %}
-                                        Rp {{ "{:,.2f}".format(target.target_amount) }}
+                                        {{ target.target_amount|currency }}
                                     {% else %}
                                         <span class="text-muted">{{ _('common.not_set') }}</span>
                                     {% endif %}

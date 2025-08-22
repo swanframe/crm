@@ -245,7 +245,7 @@
         "days_remaining": "Hari Tersisa",
         "remaining_target": "Target Tersisa",
         "required_daily": "Rata-rata Harian yang Dibutuhkan",
-        "performance_gap_warning": "Perlu meningkatkan rata-rata harian sebesar Rp {gap:,.2f} untuk mencapai target",
+        "performance_gap_warning": "Perlu meningkatkan rata-rata harian sebesar {gap} untuk mencapai target",
         "target_achieved": "Target bulanan sudah tercapai"
     },
     "stores": {

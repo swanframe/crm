@@ -26,6 +26,12 @@ app.config.from_object(Config)
 # Initialize localization for the Flask application
 init_app_localization(app)
 
+from utilities.formatting import format_currency_id, format_number_id, parse_number_id
+
+# register jinja filters
+app.jinja_env.filters['currency'] = format_currency_id
+app.jinja_env.filters['number'] = format_number_id
+
 # Decorator to ensure user is logged in
 def login_required(f):
     @wraps(f)
@@ -1531,7 +1537,8 @@ def add_revenue_item(revenue_id):
                 new_item = RevenueItem(
                     revenue_id=revenue_id,
                     revenue_type_id=int(revenue_type_id),
-                    revenue_item_amount=float(revenue_item_amount)
+                    revenue_item_amount = parse_number_id(request.form['revenue_item_amount'])
+
                 )
                 if new_item.save(g.user.id):
                     flash(get_translation('flash_messages.revenue_item_added_success'), 'success')
@@ -1628,7 +1635,7 @@ def add_store_target(store_id):
         # Ambil data dari form yang diperbarui
         target_month = int(request.form['target_month'])
         target_year = int(request.form['target_year'])
-        target_amount = float(request.form['target_amount'])
+        target_amount = parse_number_id(request.form['target_amount'])
     except (KeyError, ValueError):
         flash(get_translation('flash_messages.target_invalid_input'), 'danger')
         return redirect(url_for('view_store_detail', store_id=store_id))
