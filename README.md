@@ -28,6 +28,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Many-to-Many Relationship**: Manage associations between stores and customers.
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
+- **Localized Number Formatting**: Supports Indonesian/European number and currency formats (e.g., 1.000,00 instead of 1,000.00).
 - **Secure Password Hashing**: Uses Werkzeug for password security.
 - **WhatsApp Notification Integration** (Optional): Users can send reservation details (when adding/editing reservations) or revenue reports (from the revenue detail page) to the store's WhatsApp number (stored in the `store_whatsapp` column of the stores table). If the store's WhatsApp number is not set, the message cannot be sent. The API token (for services like Fonnte) is securely stored in the database and can only be edited by Admin users via a dedicated settings page. This feature is optional and non-essential; the application functions fully without it.
 
@@ -78,6 +79,7 @@ crm/
 ├── utilities/
 │   ├── security.py         # Password hashing utilities
 │   ├── localization.py     # Multi-language translation utilities
+│   ├── formatting.py       # Number and currency formatting utilities
 │   └── whatsapp_sender.py  # WhatsApp message sending utilities (using external API like Fonnte)
 └── translations/
     ├── en.json             # English translations
