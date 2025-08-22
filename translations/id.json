@@ -246,7 +246,10 @@
         "remaining_target": "Target Tersisa",
         "required_daily": "Rata-rata Harian yang Dibutuhkan",
         "performance_gap_warning": "Perlu meningkatkan rata-rata harian sebesar {gap} untuk mencapai target",
-        "target_achieved": "Target bulanan sudah tercapai"
+        "target_achieved": "Target bulanan sudah tercapai",
+        "upcoming_reservations": "Reservasi Mendatang Bulan Ini",
+        "more_reservations_hint": "Untuk detail lengkap, silakan kunjungi sistem CRM.",
+        "no_upcoming_reservations": "Tidak ada reservasi mendatang lainnya bulan ini."
     },
     "stores": {
         "management_title": "Manajemen Toko",

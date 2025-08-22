@@ -3,6 +3,7 @@ import requests
 from models.setting import Setting
 from models.store import Store
 from models.customer import Customer
+from models.reservation import Reservation
 from models.revenue import Revenue
 from models.store_revenue_target import StoreRevenueTarget
 from utilities.localization import get_translation
@@ -59,27 +60,28 @@ def send_whatsapp_message(target, message):
 def format_reservation_message(reservation):
     """
     Formats the reservation details into a user-friendly message.
+    Includes upcoming reservations for the same store until end of month (max 30).
     """
     try:
         store = Store.find_by_id(reservation.store_id)
         customer = Customer.find_by_id(reservation.customer_id)
 
-        if not store or not customer:
+        if not store or not customer or not reservation.reservation_datetime:
             return None
 
-        # Format tanggal dan waktu secara terpisah
-        date_str = reservation.reservation_datetime.strftime('%d %B %Y')  # Tanggal tanpa hari
-        time_str = reservation.reservation_datetime.strftime('%H:%M')      # Jam saja
+        # Format tanggal dan waktu
+        date_str = reservation.reservation_datetime.strftime('%d %B %Y')
+        time_str = reservation.reservation_datetime.strftime('%H:%M')
 
-        # Using translation keys for a multilingual message template
+        # Pesan utama untuk reservasi yang sedang diinput/diedit
         message = (
             f"{get_translation('whatsapp.greeting')}\n\n"
             f"{get_translation('customers.customer_name')}: {customer.customer_name}\n"
             f"{get_translation('common.telephone')}: {customer.customer_telephone}\n"
             f"{get_translation('stores.store_name')}: {store.store_name}\n"
             f"{get_translation('reservations.reservation_code')}: {reservation.reservation_code}\n"
-            f"{get_translation('reservations.reservation_date')}: {date_str}\n"  # Baris terpisah untuk tanggal
-            f"{get_translation('reservations.reservation_time')}: {time_str}\n"  # Baris terpisah untuk waktu
+            f"{get_translation('reservations.reservation_date')}: {date_str}\n"
+            f"{get_translation('reservations.reservation_time')}: {time_str}\n"
             f"{get_translation('reservations.reservation_status')}: {get_translation('reservation_statuses.' + reservation.reservation_status)}\n"
         )
 
@@ -93,6 +95,38 @@ def format_reservation_message(reservation):
         if reservation.reservation_notes:
             message += f"{get_translation('reservations.reservation_notes')}:\n"
             message += f"{reservation.reservation_notes}\n"
+
+        # --- NEW: Get upcoming reservations for the same store until end of month ---
+        # Calculate end of month date
+        reservation_date = reservation.reservation_datetime.date()
+        last_day = calendar.monthrange(reservation_date.year, reservation_date.month)[1]
+        end_of_month = datetime.date(reservation_date.year, reservation_date.month, last_day)
+        
+        # Get upcoming reservations
+        upcoming_reservations = Reservation.get_reservations_by_store_and_date_range(
+            store.store_id, 
+            reservation_date, 
+            end_of_month,
+            limit=30
+        )
+        
+        # Remove the current reservation from the list if it's included
+        upcoming_reservations = [r for r in upcoming_reservations if r.reservation_id != reservation.reservation_id]
+        
+        if upcoming_reservations:
+            message += f"\n{get_translation('whatsapp.upcoming_reservations')}:\n"
+            for i, res in enumerate(upcoming_reservations, 1):
+                res_customer = Customer.find_by_id(res.customer_id)
+                customer_name = res_customer.customer_name if res_customer else "N/A"
+                res_time = res.reservation_datetime.strftime('%d/%m %H:%M') if res.reservation_datetime else "N/A"
+                guests = res.reservation_guests or '?'
+                message += f"{i}. {res_time} - {customer_name} - {guests} {get_translation('reservations.reservation_guests')}\n"
+            
+            # Check if there are more than 30 reservations
+            if len(upcoming_reservations) >= 30:
+                message += f"\n{get_translation('whatsapp.more_reservations_hint')}\n"
+        else:
+            message += f"\n{get_translation('whatsapp.no_upcoming_reservations')}\n"
 
         message += f"\n{get_translation('whatsapp.thank_you')}"
 

@@ -221,3 +221,20 @@ class Reservation(BaseModel):
             search_query, all_search_columns,
             join_tables=join_tables, join_columns_for_search=join_columns_for_search
         )
+
+    @classmethod
+    def get_reservations_by_store_and_date_range(cls, store_id, start_date, end_date, limit=30):
+        """
+        Mendapatkan daftar reservasi untuk toko tertentu dalam rentang tanggal
+        """
+        query = """
+            SELECT * FROM reservations 
+            WHERE store_id = %s 
+            AND reservation_datetime::date BETWEEN %s AND %s
+            ORDER BY reservation_datetime ASC
+            LIMIT %s
+        """
+        params = (store_id, start_date, end_date, limit)
+        
+        results = cls._execute_query(query, params, fetch_all=True)
+        return [cls(**row) for row in results] if results else []

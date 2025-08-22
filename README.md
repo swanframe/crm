@@ -30,7 +30,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
 - **Localized Number Formatting**: Supports Indonesian/European number and currency formats (e.g., 1.000,00 instead of 1,000.00).
 - **Secure Password Hashing**: Uses Werkzeug for password security.
-- **WhatsApp Notification Integration** (Optional): Users can send reservation details (when adding/editing reservations) or revenue reports (from the revenue detail page) to the store's WhatsApp number (stored in the `store_whatsapp` column of the stores table). If the store's WhatsApp number is not set, the message cannot be sent. The API token (for services like Fonnte) is securely stored in the database and can only be edited by Admin users via a dedicated settings page. This feature is optional and non-essential; the application functions fully without it.
+- **Enhanced WhatsApp Notification Integration**: When adding or editing a reservation, the WhatsApp message includes not only the current reservation details but also a list of upcoming reservations (up to 30) for the same store until the end of the month. If the store's WhatsApp number is not set, the message cannot be sent. The API token (for services like Fonnte) is securely stored in the database and can only be edited by Admin users via a dedicated settings page. This feature is optional and non-essential; the application functions fully without it.
 
 ## Project Structure
 
@@ -49,7 +49,7 @@ crm/
 │   ├── store.py            # Store model
 │   ├── customer.py         # Customer model
 │   ├── store_customer.py   # Many-to-many relation model for stores and customers
-│   ├── reservation.py      # Reservation model
+│   ├── reservation.py      # Reservation model (now includes method to get reservations by date range)
 │   ├── revenue.py          # Revenue model
 │   ├── revenue_type.py     # Revenue Type model
 │   ├── revenue_item.py     # Revenue Item model
@@ -80,7 +80,7 @@ crm/
 │   ├── security.py         # Password hashing utilities
 │   ├── localization.py     # Multi-language translation utilities
 │   ├── formatting.py       # Number and currency formatting utilities
-│   └── whatsapp_sender.py  # WhatsApp message sending utilities (using external API like Fonnte)
+│   └── whatsapp_sender.py  # WhatsApp message sending utilities (enhanced to include upcoming reservations)
 └── translations/
     ├── en.json             # English translations
     ├── id.json             # Indonesian translations
@@ -123,13 +123,13 @@ To set up the project locally, follow these steps:
 - **Dashboard**: After login, users are redirected to `/dashboard` for an overview.
 - **Manage Customers**: Go to `/customers` to perform CRUD operations on customers (requires Admin, Operator, or Contributor role).
 - **Manage Stores**: Go to `/stores` to perform CRUD operations on stores (requires Admin, Operator, or Contributor role).
-- **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role). When adding or editing a reservation, an optional checkbox allows sending details to the store's WhatsApp number (if configured).
+- **Manage Reservations**: Go to `/reservations` to perform CRUD operations on reservations (requires Admin, Operator, or Contributor role). When adding or editing a reservation, an optional checkbox allows sending details to the store's WhatsApp number (if configured). The WhatsApp message now includes a list of upcoming reservations for the same store until the end of the month (limited to 30 reservations).
 - **Manage Revenues**: Go to `/revenues` to perform CRUD operations on revenue entries (requires Admin, Operator, or Contributor role). From the revenue detail page (`/revenues/<revenue_id>`), users can send a revenue report to the store's WhatsApp number (if configured).
 - **Manage Revenue Types**: Go to `/revenue_types` to perform CRUD operations on revenue types (requires Admin or Operator role).
 - **Manage Revenue Targets**: View, add, edit, and delete monthly revenue targets for a store in the store detail page (`/stores/<store_id>`).
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
-- **WhatsApp Settings** (Optional): Admins can configure the WhatsApp API token (e.g., for Fonnte) at `/whatsapp_settings`. This enables the optional WhatsApp notification feature for reservations and revenue reports. If not configured, the sending options will be disabled or ineffective.
+- **WhatsApp Settings** (Optional): Admins can configure the WhatsApp API token (e.g., for Fonnte) at `/whatsapp_settings`. This enables the enhanced WhatsApp notification feature for reservations (including upcoming reservations list) and revenue reports. If not configured, the sending options will be disabled or ineffective.
 
 ## Screenshots
 
