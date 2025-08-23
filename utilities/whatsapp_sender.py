@@ -122,11 +122,19 @@ def format_reservation_message(reservation):
                 guests = res.reservation_guests or '?'
                 
                 # Format pesan tanpa nomor, menggunakan "-"
-                message += f"- {res_date} {res_time} - {customer_name} - {guests} {get_translation('reservations.reservation_guests')}"
+                message += f"- {res_date} {res_time} - {customer_name} - {get_translation('reservations.reservation_guests')}: {guests}"
+                
+                # Tambahkan ruangan jika ada
+                if res.reservation_room:
+                    message += f" - {get_translation('reservations.reservation_room')}: {res.reservation_room}"
+                
+                # Tambahkan acara jika ada
+                if res.reservation_event:
+                    message += f" - {get_translation('reservations.reservation_event')}: {res.reservation_event}"
                 
                 # Tambahkan catatan jika ada
                 if res.reservation_notes:
-                    message += f"\n  {get_translation('reservations.reservation_notes')}:"
+                    message += f" -  {get_translation('reservations.reservation_notes')}:"
                     message += f"\n  {res.reservation_notes}"
                 
                 message += "\n"  # New line setelah setiap reservasi
