@@ -187,8 +187,7 @@ class Reservation(BaseModel):
         ]
         join_columns_for_search = {
             'customer_name': 'c.customer_name',
-            'store_name': 's.store_name',
-            'reservation_guests': 't.reservation_guests'
+            'store_name': 's.store_name'
         }
         
         # Combine base search columns with joined columns
@@ -211,8 +210,7 @@ class Reservation(BaseModel):
         ]
         join_columns_for_search = {
             'customer_name': 'c.customer_name',
-            'store_name': 's.store_name',
-            'reservation_guests': 't.reservation_guests'
+            'store_name': 's.store_name'
         }
 
         all_search_columns = search_columns + list(join_columns_for_search.keys()) if search_columns else list(join_columns_for_search.keys())
