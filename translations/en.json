@@ -249,7 +249,11 @@
         "target_achieved": "Monthly target already achieved",
         "upcoming_reservations": "Upcoming Reservations This Month",
         "more_reservations_hint": "For complete details, please visit the CRM system.",
-        "no_upcoming_reservations": "No other upcoming reservations this month."
+        "no_upcoming_reservations": "No other upcoming reservations this month.",
+        "performance_analysis": "Performance Analysis",
+        "days_so_far": "Days So Far",
+        "daily_average": "Daily Average",
+        "projected_eom_revenue": "Projected End of Month Revenue"
     },
     "stores": {
         "management_title": "Stores Management",

@@ -249,7 +249,11 @@
         "target_achieved": "Target bulanan sudah tercapai",
         "upcoming_reservations": "Reservasi Mendatang Bulan Ini",
         "more_reservations_hint": "Untuk detail lengkap, silakan kunjungi sistem CRM.",
-        "no_upcoming_reservations": "Tidak ada reservasi mendatang lainnya bulan ini."
+        "no_upcoming_reservations": "Tidak ada reservasi mendatang lainnya bulan ini.",
+        "performance_analysis": "Analisis Kinerja",
+        "days_so_far": "Hari Berlalu",
+        "daily_average": "Rata-rata Harian",
+        "projected_eom_revenue": "Proyeksi Pendapatan Akhir Bulan"
     },
     "stores": {
         "management_title": "Manajemen Toko",

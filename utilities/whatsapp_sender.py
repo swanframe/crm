@@ -190,6 +190,16 @@ def format_revenue_message(revenue, revenue_items, revenue_compliments):
         if revenue_target and revenue_target.target_amount > 0:
             achievement_percentage = (accumulated_net_revenue / revenue_target.target_amount) * 100
 
+        # --- NEW: Calculate daily average and projection ---
+        days_so_far = revenue_date.day
+        total_days_in_month = calendar.monthrange(target_year, target_month)[1]
+        
+        # Calculate daily average
+        daily_average = accumulated_net_revenue / days_so_far if days_so_far > 0 else 0
+        
+        # Calculate projected end of month revenue
+        projected_eom = daily_average * total_days_in_month
+
         # --- Message Header ---
         message = (
             f"*📊 {get_translation('whatsapp.revenue_report_title')}*\n\n"
@@ -224,6 +234,14 @@ def format_revenue_message(revenue, revenue_items, revenue_compliments):
             f"- *{get_translation('revenues.net_revenue')}: {format_currency_id(net_revenue)}*\n\n"
         )
 
+        # --- NEW: Daily Average & Projection Section ---
+        message += (
+            f"*📅 {get_translation('whatsapp.performance_analysis')}*\n"
+            f"- {get_translation('whatsapp.days_so_far')}: {days_so_far}/{total_days_in_month}\n"
+            f"- {get_translation('whatsapp.daily_average')}: {format_currency_id(daily_average)}\n"
+            f"- {get_translation('whatsapp.projected_eom_revenue')}: {format_currency_id(projected_eom)}\n\n"
+        )
+
         # --- Compliments Section ---
         if revenue_compliments:
             message += f"*🎁 {get_translation('whatsapp.revenue_compliments_list')}*\n"
@@ -236,19 +254,19 @@ def format_revenue_message(revenue, revenue_items, revenue_compliments):
         if revenue_target:
             # Calculate remaining target and required daily average
             remaining_target = revenue_target.target_amount - accumulated_net_revenue
-            days_remaining = (datetime.date(target_year, target_month, calendar.monthrange(target_year, target_month)[1]) - revenue_date).days
+            days_remaining = total_days_in_month - days_so_far
             
             if days_remaining > 0:
                 required_daily = remaining_target / days_remaining
                 message += (
-                    f"*📅 {get_translation('whatsapp.performance_notes')}*\n"
+                    f"*📊 {get_translation('whatsapp.performance_notes')}*\n"
                     f"- {get_translation('whatsapp.days_remaining')}: {days_remaining}\n"
                     f"- {get_translation('whatsapp.remaining_target')}: {format_currency_id(remaining_target)}\n"
-                    f"- {get_translation('whatsapp.required_daily')}: {format_currency_id(required_daily)}/hari\n"
+                    f"- {get_translation('whatsapp.required_daily')}: {format_currency_id(required_daily)}/day\n"
                 )
             
-            if remaining_target > 0 and required_daily > (accumulated_net_revenue / revenue_date.day):
-                gap = required_daily - (accumulated_net_revenue / revenue_date.day)
+            if remaining_target > 0 and required_daily > daily_average:
+                gap = required_daily - daily_average
                 message += f"- ⚠️ {get_translation('whatsapp.performance_gap_warning').format(gap=format_currency_id(gap))}\n"
             elif remaining_target <= 0:
                 message += f"- ✅ {get_translation('whatsapp.target_achieved')}\n"
