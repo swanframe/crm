@@ -96,13 +96,11 @@ def format_reservation_message(reservation):
             message += f"{get_translation('reservations.reservation_notes')}:\n"
             message += f"{reservation.reservation_notes}\n"
 
-        # --- NEW: Get upcoming reservations for the same store until end of month ---
-        # Calculate end of month date
+        # --- Get upcoming reservations for the same store until end of month ---
         reservation_date = reservation.reservation_datetime.date()
         last_day = calendar.monthrange(reservation_date.year, reservation_date.month)[1]
         end_of_month = datetime.date(reservation_date.year, reservation_date.month, last_day)
         
-        # Get upcoming reservations
         upcoming_reservations = Reservation.get_reservations_by_store_and_date_range(
             store.store_id, 
             reservation_date, 
@@ -115,12 +113,23 @@ def format_reservation_message(reservation):
         
         if upcoming_reservations:
             message += f"\n{get_translation('whatsapp.upcoming_reservations')}:\n"
-            for i, res in enumerate(upcoming_reservations, 1):
+            for res in upcoming_reservations:
                 res_customer = Customer.find_by_id(res.customer_id)
                 customer_name = res_customer.customer_name if res_customer else "N/A"
-                res_time = res.reservation_datetime.strftime('%d/%m %H:%M') if res.reservation_datetime else "N/A"
+                # Format tanggal menjadi d/m/Y
+                res_date = res.reservation_datetime.strftime('%d/%m/%Y') if res.reservation_datetime else "N/A"
+                res_time = res.reservation_datetime.strftime('%H:%M') if res.reservation_datetime else "N/A"
                 guests = res.reservation_guests or '?'
-                message += f"{i}. {res_time} - {customer_name} - {guests} {get_translation('reservations.reservation_guests')}\n"
+                
+                # Format pesan tanpa nomor, menggunakan "-"
+                message += f"- {res_date} {res_time} - {customer_name} - {guests} {get_translation('reservations.reservation_guests')}"
+                
+                # Tambahkan catatan jika ada
+                if res.reservation_notes:
+                    message += f"\n  {get_translation('reservations.reservation_notes')}:"
+                    message += f"\n  {res.reservation_notes}"
+                
+                message += "\n"  # New line setelah setiap reservasi
             
             # Check if there are more than 30 reservations
             if len(upcoming_reservations) >= 30:
