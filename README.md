@@ -31,6 +31,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Localized Number Formatting**: Supports Indonesian/European number and currency formats (e.g., 1.000,00 instead of 1,000.00).
 - **Secure Password Hashing**: Uses Werkzeug for password security.
 - **Enhanced WhatsApp Notification Integration**: When adding or editing a reservation, the WhatsApp message includes not only the current reservation details but also a list of upcoming reservations (up to 30) for the same store until the end of the month. If the store's WhatsApp number is not set, the message cannot be sent. The API token (for services like Fonnte) is securely stored in the database and can only be edited by Admin users via a dedicated settings page. This feature is optional and non-essential; the application functions fully without it.
+- **Public Reservation**: Customers can make reservations directly via embeddable forms on store websites (no login required). Includes public detail page for viewing reservation status by code and phone number. Supports optional WhatsApp notifications to store.
 
 ## Project Structure
 
@@ -38,7 +39,7 @@ Below is the structure of the project directory:
 
 ```
 crm/
-├── app.py                  # Main application entry point
+├── app.py                  # Main application entry point (updated with public reservation routes)
 ├── config.py               # Configuration settings
 ├── requirements.txt        # Dependencies
 ├── .env                    # Environment variables (not tracked in Git)
@@ -49,7 +50,7 @@ crm/
 │   ├── store.py            # Store model
 │   ├── customer.py         # Customer model
 │   ├── store_customer.py   # Many-to-many relation model for stores and customers
-│   ├── reservation.py      # Reservation model (now includes method to get reservations by date range)
+│   ├── reservation.py      # Reservation model
 │   ├── revenue.py          # Revenue model
 │   ├── revenue_type.py     # Revenue Type model
 │   ├── revenue_item.py     # Revenue Item model
@@ -75,12 +76,18 @@ crm/
 │   ├── revenue_types.html  # Revenue Type management page
 │   ├── revenues.html       # Revenue management page
 │   ├── revenue_detail.html # Revenue detail page
-│   └── whatsapp_settings.html # WhatsApp settings page (Admin-only)
+│   ├── whatsapp_settings.html # WhatsApp settings page (Admin-only)
+│   ├── public_reservation_detail.html # Public reservation detail page (no login required)
+│   └── public_reservation_not_found.html # Public not-found page for invalid reservation queries
 ├── utilities/
 │   ├── security.py         # Password hashing utilities
 │   ├── localization.py     # Multi-language translation utilities
 │   ├── formatting.py       # Number and currency formatting utilities
 │   └── whatsapp_sender.py  # WhatsApp message sending utilities (enhanced to include upcoming reservations)
+├── static/
+│   └── snippets/           # Example HTML snippets for embedding on external store websites
+│       ├── reservation-form-only.html # Embeddable form for public reservations
+│       └── check-status-form-only.html # Embeddable form for checking reservation status
 └── translations/
     ├── en.json             # English translations
     ├── id.json             # Indonesian translations
@@ -130,6 +137,10 @@ To set up the project locally, follow these steps:
 - **Manage Users**: Admins can manage users at `/users`.
 - **Profile and Settings**: Access `/profile` and `/settings` for user account management.
 - **WhatsApp Settings** (Optional): Admins can configure the WhatsApp API token (e.g., for Fonnte) at `/whatsapp_settings`. This enables the enhanced WhatsApp notification feature for reservations (including upcoming reservations list) and revenue reports. If not configured, the sending options will be disabled or ineffective.
+- **Public Reservation Integration**: Customers can make reservations without logging in via embeddable HTML forms on store websites. Copy the snippets from `static/snippets/` and paste into your store's website (e.g., homepage). 
+  - **reservation-form-only.html**: Form for submitting reservations. Customize `store_id`, `whatsapp_target`, and `CRM_ENDPOINT` in the script to match your CRM domain (e.g., `https://crm.example.com`).
+  - **check-status-form-only.html**: Form for checking reservation status by code and phone. Customize `FALLBACK_CRM_BASE` to your CRM domain.
+  - After submission, users are redirected to a public detail page (e.g., `/public/reservations/<code>/<phone>`). Supports CORS for cross-origin requests from store sites.
 
 ## Screenshots
 
@@ -149,6 +160,7 @@ Configuration is managed through `config.py` and environment variables:
 - **DATABASE_URL**: PostgreSQL connection string (e.g., `postgresql://postgres:your_password@localhost:5432/crm_db`).
 - **FLASK_DEBUG**: Set to `1` to enable debug mode.
 - **WhatsApp API Token** (Optional): Stored securely in the database (via the `settings` table) rather than `.env`. Only Admins can edit this via `/whatsapp_settings`. Used for sending reservation notifications and revenue reports to store WhatsApp numbers.
+- **Public Routes**: No additional config needed, but ensure your CRM domain is accessible publicly for snippet integration. Customize CORS origins in app.py for security (replace '*' with specific store domains).
 
 ## Database Setup
 
@@ -426,6 +438,7 @@ Currently, there are no automated tests. You can manually test the application b
 - Creating, editing, and deleting reservations and revenue entries.
 - Setting, viewing, editing, and deleting monthly revenue targets in store details.
 - (Optional) Configuring the WhatsApp API token as an Admin, then testing the sending options in reservation forms and revenue detail pages (requires a valid token and store WhatsApp number).
+- Public Reservation: Embed snippets in a test HTML page, submit a reservation, and check the public detail page. Verify CORS works and WhatsApp sends if enabled.
 
 ## License
 
