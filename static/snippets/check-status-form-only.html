@@ -1,0 +1,30 @@
+<!-- check-status-form-only.html -->
+<form id="checkStatusForm">
+  <label>Code</label>
+  <input name="reservation_code" required>
+
+  <label>Telephone</label>
+  <input name="customer_telephone" required>
+
+  <button type="submit">Check Reservation</button>
+</form>
+
+<script>
+(function(){
+  const form = document.getElementById('checkStatusForm');
+  const CRM_BASE = 'http://127.0.0.1:5000';
+
+  form.addEventListener('submit', function(e){
+      e.preventDefault();
+      const code = form.reservation_code.value.trim();
+      const phone = form.customer_telephone.value.trim();
+      
+      if(!code || !phone){
+          alert('Please fill in the reservation code and phone number.');
+          return;
+      }
+
+      window.location.href = `${CRM_BASE}/public/reservations/${code}/${phone}`;
+  });
+})();
+</script>

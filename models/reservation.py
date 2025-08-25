@@ -236,3 +236,17 @@ class Reservation(BaseModel):
         
         results = cls._execute_query(query, params, fetch_all=True)
         return [cls(**row) for row in results] if results else []
+
+    # models/reservation.py
+    @classmethod
+    def find_by_code_and_telephone(cls, reservation_code, customer_telephone):
+        """
+        Mencari reservasi berdasarkan kode reservasi dan telepon customer
+        """
+        query = """
+            SELECT r.* FROM reservations r
+            JOIN customers c ON r.customer_id = c.customer_id
+            WHERE r.reservation_code = %s AND c.customer_telephone = %s
+        """
+        result = cls._execute_query(query, (reservation_code, customer_telephone), fetch_one=True)
+        return cls(**result) if result else None

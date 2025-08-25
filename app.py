@@ -1,5 +1,5 @@
 # app.py
-from flask import Flask, render_template, request, redirect, url_for, session, flash, g, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, g, jsonify, make_response
 from functools import wraps
 from config import Config
 from models.user import User
@@ -1735,6 +1735,173 @@ def whatsapp_settings():
 
     current_token = Setting.get_value('whatsapp_api_token')
     return render_template('whatsapp_settings.html', token=current_token)
+
+
+# --- Public reservation route for embeddable store websites (no login) ---
+@app.route('/public/stores/<int:store_id>/reserve', methods=['POST', 'OPTIONS'])
+def public_reserve(store_id):
+    # CORS preflight
+    if request.method == 'OPTIONS':
+        resp = make_response('', 200)
+        # Production: gantikan '*' dengan origin per-store jika memungkinkan
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+        resp.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return resp
+
+    # Ambil data dari form-data atau JSON
+    data = request.form.to_dict() if request.form else (request.get_json(silent=True) or {})
+
+    # Fields (dukung beberapa nama input yang umum)
+    customer_name = data.get('customer_name') or data.get('name')
+    customer_telephone = data.get('customer_telephone') or data.get('telephone') or data.get('phone')
+    customer_email = data.get('customer_email') or data.get('email')
+    reservation_datetime_str = data.get('reservation_datetime')
+    reservation_guests = data.get('reservation_guests') or data.get('guests')
+    reservation_notes = data.get('reservation_notes') or data.get('notes')
+    send_whatsapp_flag = data.get('send_whatsapp') in ['1', 'true', 'on', True] or data.get('send_whatsapp') == 'yes'
+    whatsapp_target_from_form = data.get('whatsapp_target')  # optional; may be group id like xxx@...
+
+    # Basic required validation
+    if not customer_name or not customer_telephone or not reservation_datetime_str:
+        resp = jsonify({'status': False, 'message': get_translation('flash_messages.reservation_all_fields_required')})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    # guests -> int if provided
+    try:
+        reservation_guests = int(reservation_guests) if reservation_guests not in (None, '') else None
+    except Exception:
+        resp = jsonify({'status': False, 'message': get_translation('flash_messages.reservation_guests_invalid')})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    # Parse datetime (expects ISO-like: 2025-08-24T19:30 or '2025-08-24 19:30')
+    try:
+        # try fromisoformat first
+        try:
+            reservation_datetime = datetime.datetime.fromisoformat(reservation_datetime_str)
+        except Exception:
+            reservation_datetime = datetime.datetime.strptime(reservation_datetime_str, '%Y-%m-%d %H:%M')
+    except Exception:
+        resp = jsonify({'status': False, 'message': get_translation('flash_messages.reservation_date_invalid')})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 400
+
+    # Find store
+    store = Store.find_by_id(store_id)
+    if not store:
+        resp = jsonify({'status': False, 'message': get_translation('flash_messages.store_not_found')})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 404
+
+    # Try to find existing customer by telephone
+    existing_customer = None
+    try:
+        # Gunakan metode yang sudah ada di model Customer
+        existing_customer = Customer.find_one_by(customer_telephone=customer_telephone)
+    except Exception:
+        existing_customer = None
+
+    if existing_customer:
+        customer = existing_customer
+        # Update info customer jika ada perubahan
+        if customer_name and customer_name != customer.customer_name:
+            customer.customer_name = customer_name
+        if customer_email and customer_email != customer.customer_email:
+            customer.customer_email = customer_email
+        try:
+            customer.save(None)  # created_by = 0 untuk sistem/public
+        except Exception:
+            # Abaikan error update, lanjutkan dengan data yang ada
+            pass
+    else:
+        # create new customer (created_by = 0 to indicate system/public)
+        customer = Customer(
+            customer_name=customer_name,
+            customer_telephone=customer_telephone,
+            customer_email=customer_email,
+            customer_is_member=False
+        )
+        try:
+            customer.save(None)  # created_by = 0 untuk sistem/public
+        except Exception:
+            # Jika gagal menyimpan customer, tetap lanjutkan dengan membuat reservasi
+            # tetapi catat error untuk debugging
+            print(f"Failed to save customer: {customer_name}, {customer_telephone}")
+
+    # Create reservation object
+    new_res = Reservation(
+        customer_id=customer.customer_id,
+        store_id=store_id,
+        reservation_datetime=reservation_datetime,
+        reservation_status='Pending',
+        reservation_notes=reservation_notes,
+        reservation_guests=reservation_guests
+    )
+
+    # Save reservation (use created_by=0)
+    try:
+        save_ok = new_res.save(None)  # created_by = 0 untuk sistem/public
+    except Exception as e:
+        print(f"Failed to save reservation: {e}")
+        save_ok = False
+
+    if not save_ok:
+        resp = jsonify({'status': False, 'message': get_translation('flash_messages.reservation_add_failed')})
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp, 500
+
+    # Determine whatsapp target: prioritize form input, else fallback to store.store_whatsapp
+    whatsapp_target = whatsapp_target_from_form or store.store_whatsapp
+
+    # Send WhatsApp only if flag set and whatsapp_target exists
+    if send_whatsapp_flag and whatsapp_target:
+        try:
+            message = format_reservation_message(new_res)
+            if message:
+                send_result = send_whatsapp_message(whatsapp_target, message)
+                # ignore failures for now; not fatal to reservation
+        except Exception as e:
+            print(f"Failed to send WhatsApp: {e}")
+            # swallow WA errors
+
+    # Generate URL untuk halaman detail reservasi
+    reservation_detail_url = url_for('public_reservation_detail', 
+                                   reservation_code=new_res.reservation_code,
+                                   customer_telephone=customer_telephone,
+                                   _external=True)
+
+    resp = jsonify({
+        'status': True,
+        'message': get_translation('flash_messages.reservation_added_success'),
+        'reservation_id': new_res.reservation_id,
+        'redirect_url': reservation_detail_url  # URL untuk redirect ke halaman detail
+    })
+    resp.headers['Access-Control-Allow-Origin'] = '*'
+    return resp, 201
+
+
+# --- Public reservation detail route (no login required) ---
+@app.route('/public/reservations/<string:reservation_code>/<string:customer_telephone>')
+def public_reservation_detail(reservation_code, customer_telephone):
+    """
+    Menampilkan detail reservasi untuk customer (tanpa login required)
+    """
+    # Cari reservasi berdasarkan kode dan telepon customer
+    reservation = Reservation.find_by_code_and_telephone(reservation_code, customer_telephone)
+    
+    if not reservation:
+        return render_template('public_reservation_not_found.html'), 404
+    
+    # Dapatkan detail store dan customer
+    store = Store.find_by_id(reservation.store_id)
+    customer = Customer.find_by_id(reservation.customer_id)
+    
+    return render_template('public_reservation_detail.html', 
+                         reservation=reservation,
+                         store=store,
+                         customer=customer)
 
 
 if __name__ == '__main__':

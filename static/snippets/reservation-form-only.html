@@ -1,0 +1,96 @@
+<!-- reservation-form-only.html -->
+<form id="publicReserveForm">
+  <input type="hidden" name="store_id" value="2">
+  <input type="hidden" name="whatsapp_target" value="6283191360613">
+  <input type="hidden" name="send_whatsapp" value="true">
+
+  <!-- Input tersembunyi untuk jam operasional store -->
+  <input type="hidden" id="store_open_time" value="10:00">
+  <input type="hidden" id="store_close_time" value="21:00">
+
+  <label>Name</label>
+  <input name="customer_name" required>
+
+  <label>Telephone</label>
+  <input name="customer_telephone" required>
+
+  <label>Email</label>
+  <input name="customer_email" type="email">
+
+  <!-- Pisah input tanggal dan waktu -->
+  <label>Date</label>
+  <input type="date" id="reservation_date" required min="2024-01-01">
+
+  <label>Time</label>
+  <select id="reservation_time" required>
+    <!-- Options akan di-generate oleh JavaScript -->
+  </select>
+
+  <input type="hidden" name="reservation_datetime" id="reservation_datetime">
+
+  <label>Number of Guests</label>
+  <input name="reservation_guests" type="number" min="1">
+
+  <label>Notes</label>
+  <textarea name="reservation_notes"></textarea>
+
+  <button type="submit">Reserve</button>
+</form>
+
+<script>
+(function(){
+  const form = document.getElementById('publicReserveForm');
+  const CRM_ENDPOINT = 'http://127.0.0.1:5000/public/stores/2/reserve';
+
+  // Ambil jam operasional dari hidden input
+  const openTime = document.getElementById('store_open_time').value;
+  const closeTime = document.getElementById('store_close_time').value;
+
+  // Generate options waktu berdasarkan jam operasional
+  const timeSelect = document.getElementById('reservation_time');
+  const startHour = parseInt(openTime.split(':')[0]);
+  const endHour = parseInt(closeTime.split(':')[0]);
+
+  for(let hour = startHour; hour <= endHour; hour++) {
+    for(let minute = 0; minute < 60; minute += 30) { // Setiap 30 menit
+      const timeValue = `${hour.toString().padStart(2,'0')}:${minute.toString().padStart(2,'0')}`;
+      const option = document.createElement('option');
+      option.value = timeValue;
+      option.textContent = timeValue;
+      timeSelect.appendChild(option);
+    }
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    
+    // Gabungkan tanggal dan waktu
+    const date = document.getElementById('reservation_date').value;
+    const time = document.getElementById('reservation_time').value;
+    document.getElementById('reservation_datetime').value = `${date}T${time}`;
+
+    const fd = new FormData(form);
+    const payload = {};
+    fd.forEach((v,k) => payload[k] = v);
+  
+    try {
+      const res = await fetch(CRM_ENDPOINT, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      
+      const j = await res.json();
+  
+      if (res.ok && j.status) {
+        window.location.href = j.redirect_url;
+      } else {
+        alert(j.message || 'Failed to send reservation');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while sending. Please try again.');
+    }
+  });
+})();
+</script>
