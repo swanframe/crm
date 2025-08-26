@@ -149,12 +149,24 @@ def dashboard():
     total_customers = len(Customer.find_all())
     total_stores = len(Store.find_all())
     total_reservations = len(Reservation.find_all())
-    total_revenues = len(Revenue.find_all()) # NEW: Get total revenues
+    total_revenues = len(Revenue.find_all())
     
-    recent_customers = Customer.find_all()[-5:]
-    recent_stores = Store.find_all()[-5:]
+    # Hapus recent_customers dan recent_stores
     recent_reservations = Reservation.find_all()[-5:]
-    recent_revenues = Revenue.find_all()[-5:] # NEW: Get recent revenues
+    recent_revenues = Revenue.find_all()[-5:]
+
+    # Hitung net revenue untuk setiap revenue terbaru
+    for revenue in recent_revenues:
+        revenue_items_raw = RevenueItem._execute_query(
+            "SELECT * FROM revenue_items WHERE revenue_id = %s ORDER BY created_at ASC",
+            (revenue.revenue_id,), fetch_all=True
+        )
+        revenue_items = [RevenueItem(**item) for item in revenue_items_raw] if revenue_items_raw else []
+        
+        total_revenue_additions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Addition')
+        total_revenue_deductions = sum(item.revenue_item_amount for item in revenue_items if item.get_revenue_type_category() == 'Deduction')
+        net_revenue = total_revenue_additions - total_revenue_deductions
+        setattr(revenue, 'net_revenue', net_revenue)
 
     users = User.find_all()
     user_map = {user.id: user.username for user in users}
@@ -163,11 +175,9 @@ def dashboard():
                            total_customers=total_customers,
                            total_stores=total_stores,
                            total_reservations=total_reservations,
-                           total_revenues=total_revenues, # NEW: Pass to template
-                           recent_customers=recent_customers,
-                           recent_stores=recent_stores,
+                           total_revenues=total_revenues,
                            recent_reservations=recent_reservations,
-                           recent_revenues=recent_revenues, # NEW: Pass to template
+                           recent_revenues=recent_revenues,
                            user_map=user_map)
 
 @app.route('/profile')

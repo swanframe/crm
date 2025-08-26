@@ -228,76 +228,6 @@
                     <div class="card dashboard-card h-100">
                         <div class="card-header bg-white border-0">
                             <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">{{ _('dashboard.recent_customers_section') }}</h5>
-                                <a href="{{ url_for('list_customers') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ _('customers.customer_name') }}</th>
-                                            <th>{{ _('common.created_by') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for customer in recent_customers %}
-                                        <tr>
-                                            <td>{{ customer.customer_name }}</td>
-                                            <td>{{ user_map.get(customer.created_by, 'N/A') }}</td>
-                                        </tr>
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="2" class="text-center">{{ _('dashboard.no_recent_customers') }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="col-lg-6 mb-4">
-                    <div class="card dashboard-card h-100">
-                        <div class="card-header bg-white border-0">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">{{ _('dashboard.recent_stores_section') }}</h5>
-                                <a href="{{ url_for('list_stores') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover mb-0">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ _('stores.store_name') }}</th>
-                                            <th>{{ _('common.created_by') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for store in recent_stores %}
-                                        <tr>
-                                            <td>{{ store.store_name }}</td>
-                                            <td>{{ user_map.get(store.created_by, 'N/A') }}</td>
-                                        </tr>
-                                        {% else %}
-                                        <tr>
-                                            <td colspan="2" class="text-center">{{ _('dashboard.no_recent_stores') }}</td>
-                                        </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-lg-6 mb-4">
-                    <div class="card dashboard-card h-100">
-                        <div class="card-header bg-white border-0">
-                            <div class="d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0">{{ _('dashboard.recent_reservations_section') }}</h5>
                                 <a href="{{ url_for('list_reservations') }}" class="btn btn-sm btn-outline-primary">{{ _('dashboard.view_all_button') }}</a>
                             </div>
@@ -346,7 +276,7 @@
                                         <tr>
                                             <th>{{ _('stores.store_name') }}</th>
                                             <th>{{ _('revenues.revenue_date') }}</th>
-                                            <th>{{ _('revenues.guests') }}</th>
+                                            <th>{{ _('revenues.net_revenue') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -354,7 +284,7 @@
                                         <tr>
                                             <td>{{ revenue.get_store_name() }}</td>
                                             <td>{{ revenue.revenue_date.strftime('%Y-%m-%d') if revenue.revenue_date else _('common.not_available_short') }}</td>
-                                            <td>{{ revenue.revenue_guests if revenue.revenue_guests is not none else _('common.not_available_short') }}</td>
+                                            <td>{{ revenue.net_revenue|currency }}</td> <!-- Tampilkan net revenue -->
                                         </tr>
                                         {% else %}
                                         <tr>
