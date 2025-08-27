@@ -60,7 +60,7 @@ def send_whatsapp_message(target, message):
 def format_reservation_message(reservation):
     """
     Formats the reservation details into a user-friendly message.
-    Includes upcoming reservations for the same store until end of month (max 30).
+    Includes reservations from the 1st of the reservation's month until 100 reservations are reached.
     """
     try:
         store = Store.find_by_id(reservation.store_id)
@@ -96,24 +96,32 @@ def format_reservation_message(reservation):
             message += f"{get_translation('reservations.reservation_notes')}:\n"
             message += f"{reservation.reservation_notes}\n"
 
-        # --- Get upcoming reservations for the same store until end of month ---
+        # --- Get reservations from the 1st of the month until we reach 100 reservations ---
         reservation_date = reservation.reservation_datetime.date()
-        last_day = calendar.monthrange(reservation_date.year, reservation_date.month)[1]
-        end_of_month = datetime.date(reservation_date.year, reservation_date.month, last_day)
         
-        upcoming_reservations = Reservation.get_reservations_by_store_and_date_range(
-            store.store_id, 
-            reservation_date, 
-            end_of_month,
-            limit=30
-        )
+        # Calculate start date (1st of the month)
+        start_date = reservation_date.replace(day=1)
         
-        # Remove the current reservation from the list if it's included
-        upcoming_reservations = [r for r in upcoming_reservations if r.reservation_id != reservation.reservation_id]
+        # Get reservations from the 1st of the month, limit to 100
+        query = """
+            SELECT * FROM reservations 
+            WHERE store_id = %s 
+            AND reservation_datetime::date >= %s
+            AND reservation_id != %s
+            ORDER BY reservation_datetime ASC 
+            LIMIT 100
+        """
+        params = (store.store_id, start_date, reservation.reservation_id)
         
+        upcoming_reservations_raw = Reservation._execute_query(query, params, fetch_all=True)
+        upcoming_reservations = [Reservation(**r) for r in upcoming_reservations_raw] if upcoming_reservations_raw else []
+
         if upcoming_reservations:
-            message += f"\n{get_translation('whatsapp.upcoming_reservations')}:\n"
-            for res in upcoming_reservations:
+            # Get the month and year of the reservation for the header
+            month_year = reservation_date.strftime('%B %Y')
+            message += f"\n{get_translation('whatsapp.reservations_for')} {month_year}:\n"
+            
+            for idx, res in enumerate(upcoming_reservations, 1):
                 res_customer = Customer.find_by_id(res.customer_id)
                 customer_name = res_customer.customer_name if res_customer else "N/A"
                 # Format tanggal menjadi d/m/Y
@@ -121,8 +129,8 @@ def format_reservation_message(reservation):
                 res_time = res.reservation_datetime.strftime('%H:%M') if res.reservation_datetime else "N/A"
                 guests = res.reservation_guests or '?'
                 
-                # Format pesan tanpa nomor, menggunakan "-"
-                message += f"- {res_date} {res_time} - {customer_name} - {get_translation('reservations.reservation_guests')}: {guests}"
+                # Format pesan dengan nomor urut
+                message += f"{idx}. {res_date} {res_time} - {customer_name} - {get_translation('reservations.reservation_guests')}: {guests}"
                 
                 # Tambahkan ruangan jika ada
                 if res.reservation_room:
@@ -134,16 +142,16 @@ def format_reservation_message(reservation):
                 
                 # Tambahkan catatan jika ada
                 if res.reservation_notes:
-                    message += f" -  {get_translation('reservations.reservation_notes')}:"
+                    message += f" - {get_translation('reservations.reservation_notes')}:"
                     message += f"\n  {res.reservation_notes}"
                 
                 message += "\n"  # New line setelah setiap reservasi
             
-            # Check if there are more than 30 reservations
-            if len(upcoming_reservations) >= 30:
-                message += f"\n{get_translation('whatsapp.more_reservations_hint')}\n"
+            # Check if there are exactly 100 reservations (limit reached)
+            if len(upcoming_reservations) >= 100:
+                message += f"\n{get_translation('whatsapp.max_reservations_reached')}\n"
         else:
-            message += f"\n{get_translation('whatsapp.no_upcoming_reservations')}\n"
+            message += f"\n{get_translation('whatsapp.no_other_reservations')}\n"
 
         message += f"\n{get_translation('whatsapp.thank_you')}"
 

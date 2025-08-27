@@ -245,13 +245,13 @@
         "required_daily": "Required Daily Average",
         "performance_gap_warning": "Need to increase daily average by {gap} to meet target",
         "target_achieved": "Monthly target already achieved",
-        "upcoming_reservations": "Upcoming Reservations This Month",
-        "more_reservations_hint": "For complete details, please visit the CRM system.",
-        "no_upcoming_reservations": "No other upcoming reservations this month.",
         "performance_analysis": "Performance Analysis",
         "days_so_far": "Days So Far",
         "daily_average": "Daily Average",
-        "projected_eom_revenue": "Projected End of Month Revenue"
+        "projected_eom_revenue": "Projected End of Month Revenue",
+        "reservations_for": "Reservations for",
+        "max_reservations_reached": "* List limited to 100 reservations. Please check CRM for complete details.",
+        "no_other_reservations": "No other reservations this month."
     },
     "stores": {
         "management_title": "Stores Management",

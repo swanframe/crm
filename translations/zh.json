@@ -245,13 +245,13 @@
         "required_daily": "所需日平均值",
         "performance_gap_warning": "需要将日平均值提高 {gap} 以达到目标",
         "target_achieved": "月度目标已完成",
-        "upcoming_reservations": "本月近期预订",
-        "more_reservations_hint": "如需完整详情，请访问CRM系统。",
-        "no_upcoming_reservations": "本月没有其他近期预订。",
         "performance_analysis": "性能分析",
         "days_so_far": "已过天数",
         "daily_average": "日平均",
-        "projected_eom_revenue": "预计月末收入"
+        "projected_eom_revenue": "预计月末收入",
+        "reservations_for": "预订用于",
+        "max_reservations_reached": "* 列表限制为100个预订。请查看CRM获取完整详情。",
+        "no_other_reservations": "本月没有其他预订。"
     },
     "stores": {
         "management_title": "商店管理",

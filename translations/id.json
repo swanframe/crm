@@ -245,13 +245,13 @@
         "required_daily": "Rata-rata Harian yang Dibutuhkan",
         "performance_gap_warning": "Perlu meningkatkan rata-rata harian sebesar {gap} untuk mencapai target",
         "target_achieved": "Target bulanan sudah tercapai",
-        "upcoming_reservations": "Reservasi Mendatang Bulan Ini",
-        "more_reservations_hint": "Untuk detail lengkap, silakan kunjungi sistem CRM.",
-        "no_upcoming_reservations": "Tidak ada reservasi mendatang lainnya bulan ini.",
         "performance_analysis": "Analisis Kinerja",
         "days_so_far": "Hari Berlalu",
         "daily_average": "Rata-rata Harian",
-        "projected_eom_revenue": "Proyeksi Pendapatan Akhir Bulan"
+        "projected_eom_revenue": "Proyeksi Pendapatan Akhir Bulan",
+        "reservations_for": "Reservasi untuk",
+        "max_reservations_reached": "* Daftar dibatasi hingga 100 reservasi. Silakan periksa CRM untuk detail lengkap.",
+        "no_other_reservations": "Tidak ada reservasi lain bulan ini."
     },
     "stores": {
         "management_title": "Manajemen Toko",
