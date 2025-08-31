@@ -264,6 +264,7 @@ def format_revenue_message(revenue, revenue_items, revenue_compliments):
             remaining_target = revenue_target.target_amount - accumulated_net_revenue
             days_remaining = total_days_in_month - days_so_far
             
+            required_daily = 0
             if days_remaining > 0:
                 required_daily = remaining_target / days_remaining
                 message += (
