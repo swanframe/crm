@@ -25,7 +25,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Reservation Management**: Add, edit, delete reservations with pagination, search, and sorting capabilities. Includes customer and store associations.
 - **Revenue Management**: Add, edit, delete revenue entries with pagination, search, and sorting capabilities. Includes revenue types, items, and compliments.
 - **Store Revenue Targets**: Set, view, edit, and delete monthly revenue targets for each store, accessible via store details.
-* **Revenue Analytics**: Interactive chart with date range selection, multi-store selection, group by day/week/month, chart type line/bar/stacked, optional cumulative view, and monthly target overlay.
+- **Revenue Analytics**: Interactive chart with date range selection, multi-store selection, group by day/week/month, chart type line/bar/stacked, optional cumulative view, and monthly target overlay.
 - **Many-to-Many Relationship**: Manage associations between stores and customers.
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
