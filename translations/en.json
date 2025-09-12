@@ -49,7 +49,8 @@
         "users": "Users",
         "profile": "Profile",
         "settings": "Settings",
-        "logout": "Logout" 
+        "logout": "Logout",
+        "revenue_analytics": "Revenue Analytics"
     },
     "flash_messages": {
         "login_required": "You must be logged in to access this page.",
@@ -383,5 +384,37 @@
         "target_month": "Target Month",
         "no_target_set": "No target has been set.",
         "monthly_accumulated": "Monthly Accumulated"
+    },
+    "analytics": {
+        "revenue": {
+          "title": "Revenue Analytics",
+          "details_title": "Details by Store"
+        }
+    },
+    "filters": {
+        "start_date": "Start date",
+        "end_date": "End date",
+        "group_by": "Group by",
+        "group_by_day": "Day",
+        "group_by_week": "Week",
+        "group_by_month": "Month",
+        "chart_type": "Chart type",
+        "chart_type_line": "Line",
+        "chart_type_bar": "Bar",
+        "chart_type_stacked": "Stacked bars",
+        "stores": "Stores",
+        "stores_hint": "Hold Ctrl/Cmd to select multiple.",
+        "show_targets": "Show monthly targets",
+        "cumulative": "Cumulative"
+    },
+    "actions": {
+        "apply_filters": "Apply filters"
+    },
+    "tables": {
+        "store": "Store",
+        "actual": "Actual revenue",
+        "target": "Target",
+        "achievement": "Achievement",
+        "overall": "Overall"
     }
 }

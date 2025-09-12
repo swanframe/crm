@@ -25,6 +25,7 @@ A simple Customer Relationship Management (CRM) system built with Flask and Post
 - **Reservation Management**: Add, edit, delete reservations with pagination, search, and sorting capabilities. Includes customer and store associations.
 - **Revenue Management**: Add, edit, delete revenue entries with pagination, search, and sorting capabilities. Includes revenue types, items, and compliments.
 - **Store Revenue Targets**: Set, view, edit, and delete monthly revenue targets for each store, accessible via store details.
+* **Revenue Analytics**: Interactive chart with date range selection, multi-store selection, group by day/week/month, chart type line/bar/stacked, optional cumulative view, and monthly target overlay.
 - **Many-to-Many Relationship**: Manage associations between stores and customers.
 - **User Profile and Settings**: View profile and update password.
 - **Multi-Language Support**: Available in English, Indonesian, and Chinese.
@@ -78,7 +79,8 @@ crm/
 │   ├── revenue_detail.html # Revenue detail page
 │   ├── whatsapp_settings.html # WhatsApp settings page (Admin-only)
 │   ├── public_reservation_detail.html # Public reservation detail page (no login required)
-│   └── public_reservation_not_found.html # Public not-found page for invalid reservation queries
+│   ├── public_reservation_not_found.html # Public not-found page for invalid reservation queries
+│   └── analytics_revenue.html # Revenue Analytics page (filters + chart + summary)
 ├── utilities/
 │   ├── security.py         # Password hashing utilities
 │   ├── localization.py     # Multi-language translation utilities
@@ -93,6 +95,10 @@ crm/
     ├── id.json             # Indonesian translations
     └── zh.json             # Chinese translations
 ```
+
+**Notes:**
+
+* Chart rendering uses **Chart.js** via CDN.
 
 ## Installation
 
@@ -141,6 +147,7 @@ To set up the project locally, follow these steps:
   - **reservation-form-only.html**: Form for submitting reservations. Customize `store_id`, `whatsapp_target`, and `CRM_ENDPOINT` in the script to match your CRM domain (e.g., `https://crm.example.com`).
   - **check-status-form-only.html**: Form for checking reservation status by code and phone. Customize `FALLBACK_CRM_BASE` to your CRM domain.
   - After submission, users are redirected to a public detail page (e.g., `/public/reservations/<code>/<phone>`). Supports CORS for cross-origin requests from store sites.
+* **Revenue Analytics**: Navigate via sidebar Revenues → Revenue Analytics or open `/analytics/revenue`. Choose date range, stores, grouping (day/week/month), chart type (line/bar/stacked), toggle cumulative and monthly target overlay.
 
 ## Screenshots
 

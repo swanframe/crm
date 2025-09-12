@@ -49,7 +49,8 @@
         "users": "Pengguna",
         "profile": "Profil",
         "settings": "Pengaturan",
-        "logout": "Keluar" 
+        "logout": "Keluar",
+        "revenue_analytics": "Analitik Pendapatan"
     },
     "flash_messages": {
         "login_required": "Anda harus masuk untuk mengakses halaman ini.",
@@ -383,5 +384,37 @@
         "target_month": "Bulan Target",
         "no_target_set": "Target belum ditetapkan.",
         "monthly_accumulated": "Akumulasi Bulanan"
+    },
+    "analytics": {
+        "revenue": {
+          "title": "Analitik Pendapatan",
+          "details_title": "Rincian per Toko"
+        }
+    },
+    "filters": {
+        "start_date": "Tanggal mulai",
+        "end_date": "Tanggal akhir",
+        "group_by": "Kelompokkan berdasarkan",
+        "group_by_day": "Hari",
+        "group_by_week": "Minggu",
+        "group_by_month": "Bulan",
+        "chart_type": "Tipe grafik",
+        "chart_type_line": "Garis",
+        "chart_type_bar": "Batang",
+        "chart_type_stacked": "Batang bertumpuk",
+        "stores": "Toko",
+        "stores_hint": "Tahan Ctrl/Cmd untuk memilih banyak.",
+        "show_targets": "Tampilkan target bulanan",
+        "cumulative": "Kumulatif"
+    },
+    "actions": {
+        "apply_filters": "Terapkan filter"
+    },
+    "tables": {
+        "store": "Toko",
+        "actual": "Pendapatan aktual",
+        "target": "Target",
+        "achievement": "Capaian",
+        "overall": "Total"
     }
 }

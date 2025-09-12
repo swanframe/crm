@@ -49,7 +49,8 @@
         "users": "用户",
         "profile": "个人资料",
         "settings": "设置",
-        "logout": "退出" 
+        "logout": "退出",
+        "revenue_analytics": "营收分析"
     },
     "flash_messages": {
         "login_required": "您必须登录才能访问此页面。",
@@ -383,5 +384,37 @@
         "target_month": "目标月份",
         "no_target_set": "未设置目标。",
         "monthly_accumulated": "月累计"
+    },
+    "analytics": {
+        "revenue": {
+          "title": "营收分析",
+          "details_title": "门店明细"
+        }
+    },
+    "filters": {
+        "start_date": "开始日期",
+        "end_date": "结束日期",
+        "group_by": "分组方式",
+        "group_by_day": "按天",
+        "group_by_week": "按周",
+        "group_by_month": "按月",
+        "chart_type": "图表类型",
+        "chart_type_line": "折线图",
+        "chart_type_bar": "柱状图",
+        "chart_type_stacked": "堆叠柱状图",
+        "stores": "门店",
+        "stores_hint": "按住 Ctrl/Cmd 多选。",
+        "show_targets": "显示月度目标",
+        "cumulative": "累计"
+    },
+    "actions": {
+        "apply_filters": "应用筛选"
+    },
+    "tables": {
+        "store": "门店",
+        "actual": "实际营收",
+        "target": "目标",
+        "achievement": "达成率",
+        "overall": "总计"
     }
 }

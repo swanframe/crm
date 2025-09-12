@@ -1726,6 +1726,256 @@ def search_revenue_types():
     return jsonify(results)
 
 
+# --- Revenue Analytics (NEW) ---
+@app.route('/analytics/revenue')
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def analytics_revenue_page():
+    """
+    Render the Revenue Analytics page with filter controls.
+    """
+    # Default date range: current month to today
+    today = datetime.date.today()
+    default_start = today.replace(day=1)
+    default_end = today
+
+    # Use URL params if provided
+    start_date = request.args.get('start_date', default_start.strftime('%Y-%m-%d'))
+    end_date = request.args.get('end_date', default_end.strftime('%Y-%m-%d'))
+
+    stores = Store.find_all_sorted(sort_by='store_name', sort_order='ASC')
+
+    return render_template(
+        'analytics_revenue.html',
+        stores=stores,
+        default_start_date=start_date,
+        default_end_date=end_date,
+    )
+
+
+@app.route('/api/analytics/revenue')
+@login_required
+@role_required(['Admin', 'Operator', 'Contributor'])
+def api_analytics_revenue():
+    """
+    Returns aggregated revenue vs target for the selected stores and date range.
+    Query params:
+      - start_date (YYYY-MM-DD)
+      - end_date (YYYY-MM-DD)
+      - store_ids (comma-separated IDs)
+      - group_by: day|week|month (default day)
+      - cumulative: true|false (default false)
+    """
+    # Parse & validate inputs
+    try:
+        start_date = datetime.datetime.strptime(request.args.get('start_date'), '%Y-%m-%d').date()
+        end_date = datetime.datetime.strptime(request.args.get('end_date'), '%Y-%m-%d').date()
+    except Exception:
+        return jsonify({'error': 'Invalid or missing start_date/end_date'}), 400
+
+    if end_date < start_date:
+        return jsonify({'error': 'end_date must be >= start_date'}), 400
+
+    group_by = request.args.get('group_by', 'day')
+    cumulative = request.args.get('cumulative', 'false').lower() == 'true'
+
+    # Stores
+    all_stores = Store.find_all_sorted(sort_by='store_name', sort_order='ASC')
+    store_id_map = {s.store_id: s.store_name for s in all_stores}
+
+    raw_store_ids = request.args.get('store_ids')
+    if raw_store_ids:
+        store_ids = [int(x) for x in raw_store_ids.split(',') if x.strip().isdigit() and int(x) in store_id_map]
+    else:
+        store_ids = list(store_id_map.keys())  # default: all
+
+    if not store_ids:
+        return jsonify({'error': 'No valid store_ids provided'}), 400
+
+    # Helper: iterate dates
+    def date_range(d0, d1):
+        d = d0
+        while d <= d1:
+            yield d
+            d += datetime.timedelta(days=1)
+
+    # Helper: grouping key & label
+    def group_key_label(d):
+        if group_by == 'week':
+            y, w, _ = d.isocalendar()
+            # label uses Monday of that ISO week
+            monday = d - datetime.timedelta(days=d.weekday())
+            return (y, w), monday.strftime('%Y-%m-%d')
+        elif group_by == 'month':
+            return (d.year, d.month), f"{d.year}-{d.month:02d}"
+        else:
+            return (d.year, d.month, d.day), d.strftime('%Y-%m-%d')
+
+    # ---- Actual net revenue per day per store (SQL) ----
+    # We follow the codebase pattern using *_execute_query for custom SQL.
+    placeholders = ','.join(['%s'] * len(store_ids))
+    sql = f'''
+        SELECT r.store_id,
+               r.revenue_date::date AS d,
+               COALESCE(SUM(
+                 CASE WHEN rt.revenue_type_category = 'Addition' THEN ri.revenue_item_amount
+                      WHEN rt.revenue_type_category = 'Deduction' THEN -ri.revenue_item_amount
+                      ELSE 0 END
+               ), 0) AS net
+        FROM revenues r
+        LEFT JOIN revenue_items ri ON ri.revenue_id = r.revenue_id
+        LEFT JOIN revenue_types rt ON rt.revenue_type_id = ri.revenue_type_id
+        WHERE r.revenue_date >= %s AND r.revenue_date <= %s
+          AND r.store_id IN ({placeholders})
+        GROUP BY r.store_id, d
+        ORDER BY d ASC;
+    '''
+    params = [start_date, end_date] + store_ids
+    rows = Revenue._execute_query(sql, tuple(params), fetch_all=True)
+
+    # Build daily actuals dict: {date: {store_id: net}}
+    daily_actuals = {d: {sid: 0.0 for sid in store_ids} for d in date_range(start_date, end_date)}
+    for row in rows or []:
+        d = row['d'] if isinstance(row['d'], datetime.date) else row['d'].date()
+        sid = row['store_id']
+        if d in daily_actuals and sid in daily_actuals[d]:
+            daily_actuals[d][sid] = float(row['net'] or 0.0)
+
+    # ---- Targets per month per store ----
+    start_key = start_date.year * 100 + start_date.month
+    end_key = end_date.year * 100 + end_date.month
+    sql_t = f'''
+        SELECT store_id, target_year, target_month, target_amount
+        FROM store_revenue_targets
+        WHERE store_id IN ({placeholders})
+          AND (target_year * 100 + target_month) BETWEEN %s AND %s
+        ORDER BY target_year, target_month;
+    '''
+    params_t = store_ids + [start_key, end_key]
+    trows = StoreRevenueTarget._execute_query(sql_t, tuple(params_t), fetch_all=True)
+
+    # Build monthly targets dict: {(year,month): {store_id: amount}}
+    monthly_targets = {}
+    for row in trows or []:
+        ym = (row['target_year'], row['target_month'])
+        monthly_targets.setdefault(ym, {})[row['store_id']] = float(row['target_amount'] or 0.0)
+
+    # Expand targets to daily (evenly prorated by days in month) so we can aggregate to week/month easily
+    def days_in_month(year, month):
+        if month == 12:
+            return (datetime.date(year+1, 1, 1) - datetime.date(year, month, 1)).days
+        return (datetime.date(year, month+1, 1) - datetime.date(year, month, 1)).days
+
+    daily_targets = {d: {sid: 0.0 for sid in store_ids} for d in date_range(start_date, end_date)}
+    # For each (year,month) within range, distribute target across that month's days
+    cur = datetime.date(start_date.year, start_date.month, 1)
+    end_month = datetime.date(end_date.year, end_date.month, 1)
+    while cur <= end_month:
+        ym = (cur.year, cur.month)
+        dim = days_in_month(cur.year, cur.month)
+        for sid in store_ids:
+            monthly = monthly_targets.get(ym, {}).get(sid, 0.0)
+            per_day = (monthly / dim) if dim else 0.0
+            # fill only dates within the selected range and this month
+            day = cur
+            last_day = (cur.replace(day=dim))
+            d_from = max(day, start_date)
+            d_to = min(last_day, end_date)
+            d = d_from
+            while d <= d_to:
+                daily_targets[d][sid] += per_day
+                d += datetime.timedelta(days=1)
+        # next month
+        if cur.month == 12:
+            cur = datetime.date(cur.year + 1, 1, 1)
+        else:
+            cur = datetime.date(cur.year, cur.month + 1, 1)
+
+    # ---- Grouping (day/week/month) & cumulative toggle ----
+    groups = []            # ordered labels
+    actual_by_group = {}   # {label: {sid: value}}
+    target_by_group = {}
+
+    # Prepare all labels first
+    label_set = []
+    seen = set()
+    for d in date_range(start_date, end_date):
+        _, label = group_key_label(d)
+        if label not in seen:
+            seen.add(label)
+            label_set.append(label)
+    groups = label_set
+
+    # Init
+    for label in groups:
+        actual_by_group[label] = {sid: 0.0 for sid in store_ids}
+        target_by_group[label] = {sid: 0.0 for sid in store_ids}
+
+    # Aggregate daily into chosen grouping
+    def label_of(d):
+        return group_key_label(d)[1]
+
+    for d, per_store in daily_actuals.items():
+        label = label_of(d)
+        for sid, v in per_store.items():
+            actual_by_group[label][sid] += v
+
+    for d, per_store in daily_targets.items():
+        label = label_of(d)
+        for sid, v in per_store.items():
+            target_by_group[label][sid] += v
+
+    # Cumulative transform if requested
+    if cumulative:
+        running_actual = {sid: 0.0 for sid in store_ids}
+        running_target = {sid: 0.0 for sid in store_ids}
+        for label in groups:
+            for sid in store_ids:
+                running_actual[sid] += actual_by_group[label][sid]
+                running_target[sid] += target_by_group[label][sid]
+                actual_by_group[label][sid] = running_actual[sid]
+                target_by_group[label][sid] = running_target[sid]
+
+    # Build series per store
+    series = []
+    for sid in store_ids:
+        series.append({
+            'store_id': sid,
+            'store_name': store_id_map.get(sid, f'Store {sid}'),
+            'actual': [round(actual_by_group[label][sid], 2) for label in groups],
+            'target': [round(target_by_group[label][sid], 2) for label in groups],
+        })
+
+    # Summary
+    by_store = []
+    overall_actual = 0.0
+    overall_target = 0.0
+    for s in series:
+        a = sum(s['actual']) if groups else 0.0
+        t = sum(s['target']) if groups else 0.0
+        overall_actual += a
+        overall_target += t
+        by_store.append({
+            'store_id': s['store_id'],
+            'store_name': s['store_name'],
+            'actual_total': round(a, 2),
+            'target_total': round(t, 2),
+            'achievement_pct': round((a / t * 100.0) if t > 0 else 0.0, 2)
+        })
+
+    summary = {
+        'by_store': by_store,
+        'overall': {
+            'actual_total': round(overall_actual, 2),
+            'target_total': round(overall_target, 2),
+            'achievement_pct': round((overall_actual / overall_target * 100.0) if overall_target > 0 else 0.0, 2)
+        }
+    }
+
+    return jsonify({'labels': groups, 'series': series, 'summary': summary})
+# --- END Revenue Analytics (NEW) ---
+
+
 # --- NEW: WhatsApp Settings Route ---
 @app.route('/settings/whatsapp', methods=['GET', 'POST'])
 @login_required

@@ -1,0 +1,208 @@
+{% extends "dashboard.html" %}
+
+{% block title %}{{ _('analytics.revenue.title') }} - {{ _('app_name') }}{% endblock %}
+{% block page_title %}{{ _('analytics.revenue.title') }}{% endblock %}
+
+{% block page_content %}
+<div class="pb-3">
+  <div class="card mb-4">
+    <div class="card-body">
+      <form id="filters" class="row g-3 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label">{{ _('filters.start_date') }}</label>
+          <input type="date" class="form-control" id="start_date" value="{{ default_start_date }}"/>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">{{ _('filters.end_date') }}</label>
+          <input type="date" class="form-control" id="end_date" value="{{ default_end_date }}"/>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">{{ _('filters.group_by') }}</label>
+          <select id="group_by" class="form-select">
+            <option value="day">{{ _('filters.group_by_day') }}</option>
+            <option value="week">{{ _('filters.group_by_week') }}</option>
+            <option value="month">{{ _('filters.group_by_month') }}</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label">{{ _('filters.chart_type') }}</label>
+          <select id="chart_type" class="form-select">
+            <option value="line">{{ _('filters.chart_type_line') }}</option>
+            <option value="bar">{{ _('filters.chart_type_bar') }}</option>
+            <option value="stacked">{{ _('filters.chart_type_stacked') }}</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-md-6">
+          <label class="form-label">{{ _('filters.stores') }}</label>
+          <select id="store_ids" class="form-select" multiple size="6">
+            {% for s in stores %}
+            <option value="{{ s.store_id }}">{{ s.store_name }}</option>
+            {% endfor %}
+          </select>
+          <small class="text-muted">{{ _('filters.stores_hint') }}</small>
+        </div>
+        <div class="col-6 col-md-3 form-check ms-2">
+          <input class="form-check-input" type="checkbox" id="show_targets" checked>
+          <label class="form-check-label" for="show_targets">{{ _('filters.show_targets') }}</label>
+        </div>
+        <div class="col-6 col-md-3 form-check">
+          <input class="form-check-input" type="checkbox" id="cumulative">
+          <label class="form-check-label" for="cumulative">{{ _('filters.cumulative') }}</label>
+        </div>
+
+        <div class="col-12">
+          <button class="btn btn-primary" type="submit"><i class="bi bi-bar-chart"></i> {{ _('actions.apply_filters') }}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body" style="height: 360px">
+      <canvas id="revChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h2 class="h5 mb-3">{{ _('analytics.revenue.details_title') }}</h2>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>{{ _('tables.store') }}</th>
+              <th class="text-end">{{ _('tables.actual') }}</th>
+              <th class="text-end">{{ _('tables.target') }}</th>
+              <th class="text-end">{{ _('tables.achievement') }}</th>
+            </tr>
+          </thead>
+          <tbody id="summaryBody"></tbody>
+          <tfoot>
+            <tr class="fw-semibold">
+              <td>{{ _('tables.overall') }}</td>
+              <td class="text-end" id="overallActual">-</td>
+              <td class="text-end" id="overallTarget">-</td>
+              <td class="text-end" id="overallAch">-</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  const f = document.getElementById('filters');
+  const chartEl = document.getElementById('revChart');
+  let chart;
+
+  function getSelected(el) {
+    return Array.from(el.selectedOptions).map(o => o.value);
+  }
+
+  function fmt(num) {
+    try { return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(num); } catch(e) { return num; }
+  }
+
+  function buildDatasets(data, chartType, showTargets) {
+    const sets = [];
+    const palette = (i) => `hsl(${(i*63)%360} 70% 45%)`;
+    data.series.forEach((s, idx) => {
+      const base = {
+        label: s.store_name,
+        data: s.actual,
+        borderWidth: 2,
+        tension: 0.2,
+      };
+      if (chartType === 'line') {
+        base.type = 'line';
+        base.borderColor = palette(idx);
+        base.backgroundColor = palette(idx);
+        base.fill = false;
+      } else {
+        base.type = 'bar';
+        base.backgroundColor = palette(idx);
+        base.borderColor = palette(idx);
+      }
+      sets.push(base);
+
+      if (showTargets) {
+        sets.push({
+          type: 'line',
+          label: s.store_name + ' — Target',
+          data: s.target,
+          borderWidth: 2,
+          borderDash: [6,4],
+          pointRadius: 0,
+          tension: 0.2,
+          borderColor: palette(idx),
+          backgroundColor: palette(idx),
+        });
+      }
+    });
+    return sets;
+  }
+
+  function renderSummary(summary) {
+    const body = document.getElementById('summaryBody');
+    body.innerHTML = '';
+    summary.by_store.forEach(row => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${row.store_name}</td>
+        <td class="text-end">${fmt(row.actual_total)}</td>
+        <td class="text-end">${fmt(row.target_total)}</td>
+        <td class="text-end">${fmt(row.achievement_pct)}%</td>
+      `;
+      body.appendChild(tr);
+    });
+    document.getElementById('overallActual').textContent = fmt(summary.overall.actual_total);
+    document.getElementById('overallTarget').textContent = fmt(summary.overall.target_total);
+    document.getElementById('overallAch').textContent = fmt(summary.overall.achievement_pct) + '%';
+  }
+
+  async function reload() {
+    const qs = new URLSearchParams({
+      start_date: document.getElementById('start_date').value,
+      end_date: document.getElementById('end_date').value,
+      group_by: document.getElementById('group_by').value,
+      cumulative: document.getElementById('cumulative').checked,
+      store_ids: getSelected(document.getElementById('store_ids')).join(',')
+    });
+
+    const res = await fetch(`/api/analytics/revenue?${qs.toString()}`);
+    const data = await res.json();
+    if (data.error) { alert(data.error); return; }
+
+    const chartType = document.getElementById('chart_type').value;
+    const showTargets = document.getElementById('show_targets').checked;
+
+    const datasets = buildDatasets(data, chartType, showTargets);
+
+    if (chart) chart.destroy();
+    chart = new Chart(chartEl, {
+      data: { labels: data.labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          x: { stacked: chartType === 'stacked' },
+          y: { stacked: chartType === 'stacked', beginAtZero: true }
+        }
+      }
+    });
+
+    renderSummary(data.summary);
+  }
+
+  f.addEventListener('submit', function(e) { e.preventDefault(); reload(); });
+
+  // initial load
+  reload();
+})();
+</script>
+{% endblock %}
